@@ -114,6 +114,22 @@ def response_text(response: Any) -> str:
     return "\n".join(chunks).strip()
 
 
+def fallback_move(step: int, reason: str) -> dict[str, str]:
+    sequence = [
+        ("open_gripper", "0.25"),
+        ("lift_up", "0.25"),
+        ("pan_left", "0.25"),
+        ("pan_right", "0.25"),
+        ("lift_down", "0.25"),
+    ]
+    move, amount = sequence[(step - 1) % len(sequence)]
+    return {
+        "move": move,
+        "amount": amount,
+        "reason": f"Fallback bounded move because the model response was unusable: {reason}",
+    }
+
+
 def ask_next_move(
     client: OpenAI,
     model: str,
@@ -158,13 +174,13 @@ def ask_next_move(
     last_error: Exception | None = None
     decision: dict[str, Any] | None = None
     for attempt in range(2):
-        response = client.responses.create(
-            model=model,
-            instructions=instructions,
-            input=[{"role": "user", "content": content}],
-        )
-        text = response_text(response)
         try:
+            response = client.responses.create(
+                model=model,
+                instructions=instructions,
+                input=[{"role": "user", "content": content}],
+            )
+            text = response_text(response)
             decision = extract_json(text)
             break
         except Exception as exc:
@@ -175,11 +191,9 @@ def ask_next_move(
                     + "\n\nPrevious response was not valid JSON or was empty. Return only JSON now."
                 )
             else:
-                raise RuntimeError(
-                    "OpenAI did not return a usable JSON move. "
-                    f"Last error: {last_error}. Raw text length: {len(text)}"
-                ) from exc
-    assert decision is not None
+                return fallback_move(step, str(last_error))
+    if decision is None:
+        return fallback_move(step, "empty decision")
     move = str(decision.get("move", "")).strip()
     if move not in ALLOWED_MOVES:
         move = "stop"
@@ -234,6 +248,8 @@ def main() -> int:
         return 1
     if not os.environ.get("OPENAI_API_KEY"):
         print("Missing OPENAI_API_KEY. Set it in your terminal, never in Git.")
+        print('PowerShell: $env:OPENAI_API_KEY="your_api_key_here"')
+        print("CMD: set OPENAI_API_KEY=your_api_key_here")
         return 1
     if not CONFIG_PATH.exists():
         print("Missing config.json.")
@@ -257,6 +273,8 @@ def main() -> int:
             position = read_current_position(robot)
             images = capture_camera_images(camera_indices, width, height)
             print(f"Step {step}/{args.steps}: captured {len(images)} camera frame(s).")
+            if not images:
+                print("No camera frame captured; continuing with current joint position only.")
             decision = ask_next_move(client, args.model, args.request, step, position, images)
             move = decision["move"]
             amount = float(decision.get("amount", 0.5))

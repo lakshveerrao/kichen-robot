@@ -36,7 +36,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Camera-aware bounded ChatGPT agent controller for SO-101.")
     parser.add_argument("request", nargs="*", help="Plain English request, for example: pick up the pen and place it in the cup.")
     parser.add_argument("--model", default=os.environ.get("CHATGPT_ROBOT_MODEL", "gpt-4.1-mini"))
-    parser.add_argument("--execute", action="store_true", help="Run the selected safe command.")
+    parser.add_argument("--execute", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--plan-only", action="store_true", help="Print the selected command without moving the robot.")
     parser.add_argument("--camera-indices", nargs="*", type=int, default=None)
     parser.add_argument("--speed-scale", type=float, default=0.02)
     parser.add_argument("--pause", type=float, default=0.4)
@@ -72,6 +73,8 @@ def command_for(args: argparse.Namespace) -> list[str]:
         ]
         if args.model:
             command.extend(["--model", args.model])
+        if args.camera_indices:
+            command.extend(["--camera-indices", *[str(index) for index in args.camera_indices]])
         return command
     command = [
         python_exe,
@@ -104,6 +107,7 @@ def main() -> int:
     if not os.environ.get("OPENAI_API_KEY"):
         print("Missing OPENAI_API_KEY. Set it in your terminal, never in Git.")
         print('PowerShell: $env:OPENAI_API_KEY="your_api_key_here"')
+        print("CMD: set OPENAI_API_KEY=your_api_key_here")
         return 1
 
     try:
@@ -115,8 +119,8 @@ def main() -> int:
             "command": command,
         }
         print(json.dumps(result, indent=2))
-        if not args.execute:
-            print("Planning only. Add --execute to run movement.")
+        if args.plan_only:
+            print("Planning only. Remove --plan-only to run movement.")
             return 0
         print("Executing automatic agent command.")
         completed = subprocess.run(command, cwd=ROOT, check=False)

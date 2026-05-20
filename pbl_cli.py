@@ -160,14 +160,16 @@ def save_pose(args: argparse.Namespace) -> int:
 
 def agent(args: argparse.Namespace) -> int:
     command = [python_exe(), "automatic_agent_controller.py", *args.request]
-    if args.execute:
-        command.append("--execute")
+    if args.plan_only:
+        command.append("--plan-only")
     if args.dry_run_command:
         command.append("--dry-run-command")
     if args.use_saved_poses:
         command.append("--use-saved-poses")
     if args.model:
         command.extend(["--model", args.model])
+    if args.camera_indices:
+        command.extend(["--camera-indices", *[str(index) for index in args.camera_indices]])
     command.extend(["--steps", str(args.steps)])
     command.extend(["--speed-scale", str(args.speed_scale), "--pause", str(args.pause)])
     return run(command)
@@ -446,10 +448,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("agent", help="Camera-aware automatic agent controller.")
     p.add_argument("request", nargs="*")
-    p.add_argument("--execute", action="store_true")
+    p.add_argument("--execute", action="store_true", help=argparse.SUPPRESS)
+    p.add_argument("--plan-only", action="store_true", help="Print the selected command without moving the robot.")
     p.add_argument("--dry-run-command", action="store_true")
     p.add_argument("--use-saved-poses", action="store_true")
     p.add_argument("--model", default=None)
+    p.add_argument("--camera-indices", nargs="*", type=int, default=None)
     p.add_argument("--steps", type=int, default=12)
     p.add_argument("--speed-scale", type=float, default=0.02)
     p.add_argument("--pause", type=float, default=0.4)
