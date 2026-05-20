@@ -18,6 +18,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Local SO-101 motor setup and calibration without Solo CLI.")
     parser.add_argument("--action", choices=["setup-motors", "calibrate"], required=True)
     parser.add_argument("--device", choices=["leader", "follower", "all"], required=True)
+    parser.add_argument("--robot-type", choices=["auto", "so101"], default="auto")
     parser.add_argument("--leader-port", default=None)
     parser.add_argument("--follower-port", default=None)
     parser.add_argument("--leader-id", default=None)
@@ -49,6 +50,7 @@ def main() -> int:
 
     try:
         config = load_json(CONFIG_PATH)
+        robot_type = "so101" if args.robot_type == "auto" else args.robot_type
         leader_port = args.leader_port or config.get("leader_port") or "COM8"
         follower_port = args.follower_port or config.get("robot_port") or config.get("follower_port") or "COM7"
         leader_id = args.leader_id or config.get("leader_id") or "1"
@@ -56,6 +58,7 @@ def main() -> int:
         SO101Leader, SO101LeaderConfig, SO101Follower, SO101FollowerConfig = import_lerobot_classes()
 
         print("PBL local robot admin. No Solo CLI required.")
+        print(f"Auto-detected robot type: {robot_type.upper()}")
         print(f"action={args.action}, device={args.device}")
         print(f"leader_port={leader_port}, leader_id={leader_id}")
         print(f"follower_port={follower_port}, follower_id={follower_id}")

@@ -6,6 +6,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from camera_runtime import BackgroundCameraSet, choose_cameras
+
 
 CONFIG_PATH = Path("config.json")
 
@@ -22,6 +24,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--leader-id", default=None, help="Leader calibration id.")
     parser.add_argument("--follower-id", default=None, help="Follower calibration id.")
     parser.add_argument("--fps", type=float, default=60.0)
+    parser.add_argument("--camera-mode", choices=["ask", "yes", "no"], default="ask")
+    parser.add_argument("--camera-fps", type=float, default=30.0)
+    parser.add_argument("--camera-width", type=int, default=640)
+    parser.add_argument("--camera-height", type=int, default=480)
+    parser.add_argument("--camera-save-dir", default=None)
     parser.add_argument("--max-relative-target", type=float, default=5.0)
     parser.add_argument("--yes", action="store_true")
     return parser.parse_args()
@@ -50,6 +57,7 @@ def main() -> int:
 
     leader = None
     follower = None
+    cameras = None
     try:
         config = load_json(CONFIG_PATH)
         leader_port = args.leader_port or config.get("leader_port") or "COM8"
@@ -62,8 +70,21 @@ def main() -> int:
         print(f"leader_port={leader_port}, follower_port={follower_port}")
         print(f"leader_id={leader_id}, follower_id={follower_id}, fps={args.fps}")
         print("Move the leader arm to control the follower arm. Press Ctrl+C to stop.")
+        configured_cameras = [int(index) for index in config.get("camera_indices", [0])]
+        camera_indices = choose_cameras(args.camera_mode, configured_cameras, args.camera_width, args.camera_height)
         if not args.yes:
             input("Press Enter to connect teleop, or Ctrl+C to cancel.")
+
+        cameras = BackgroundCameraSet(
+            camera_indices,
+            args.camera_width,
+            args.camera_height,
+            args.camera_fps,
+            Path(args.camera_save_dir) if args.camera_save_dir else None,
+        )
+        cameras.start()
+        if camera_indices:
+            print(f"Camera capture running in background: {camera_indices}")
 
         leader = SO101Leader(SO101LeaderConfig(port=leader_port, id=str(leader_id)))
         follower = SO101Follower(
@@ -87,7 +108,8 @@ def main() -> int:
             follower.send_action(action)
             now = time.time()
             if now >= next_print:
-                print("Teleop running. Press Ctrl+C to stop.")
+                camera_state = cameras.snapshot() if cameras is not None else {}
+                print(f"Teleop running. Press Ctrl+C to stop. cameras={camera_state}")
                 next_print = now + 5.0
             elapsed = time.perf_counter() - started
             sleep_time = interval - elapsed
@@ -109,6 +131,8 @@ def main() -> int:
                     print(f"{name} disconnected.")
             except Exception as exc:
                 print(f"Warning: {name} disconnect failed: {exc}")
+        if cameras is not None:
+            cameras.stop()
 
 
 if __name__ == "__main__":

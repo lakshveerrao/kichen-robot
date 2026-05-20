@@ -68,6 +68,19 @@ pbl robo --train --input recordings/latest/observations.jsonl --model-out models
 pbl robo --inference --policy models/latest_policy.json --speed-scale 0.02
 ```
 
+Teleop asks whether to use cameras. To skip or force cameras:
+
+```cmd
+pbl teleop --camera-mode no
+pbl teleop --camera-mode yes --camera-fps 30
+```
+
+Record with camera metadata/images:
+
+```cmd
+pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30
+```
+
 Full calibration and run guide:
 
 ```cmd

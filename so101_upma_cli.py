@@ -130,6 +130,16 @@ def teleop(args: argparse.Namespace) -> int:
         command.extend(["--follower-id", args.follower_id])
     if getattr(args, "fps", None):
         command.extend(["--fps", str(args.fps)])
+    if getattr(args, "camera_mode", None):
+        command.extend(["--camera-mode", args.camera_mode])
+    if getattr(args, "camera_fps", None):
+        command.extend(["--camera-fps", str(args.camera_fps)])
+    if getattr(args, "camera_width", None):
+        command.extend(["--camera-width", str(args.camera_width)])
+    if getattr(args, "camera_height", None):
+        command.extend(["--camera-height", str(args.camera_height)])
+    if getattr(args, "camera_save_dir", None):
+        command.extend(["--camera-save-dir", args.camera_save_dir])
     return run(command)
 
 
@@ -337,7 +347,18 @@ def robo(args: argparse.Namespace) -> int:
     if args.teleop:
         return teleop(args)
     if args.record:
-        return run([python_exe(), "local_record.py", "--out", args.out, "--seconds", str(args.seconds), "--fps", str(args.fps), "--yes"])
+        return run([
+            python_exe(), "local_record.py",
+            "--out", args.out,
+            "--seconds", str(args.seconds),
+            "--fps", str(args.fps),
+            "--camera-mode", args.camera_mode,
+            "--camera-fps", str(args.camera_fps),
+            "--camera-width", str(args.camera_width),
+            "--camera-height", str(args.camera_height),
+            "--camera-save-dir", args.camera_save_dir,
+            "--yes",
+        ])
     if args.train:
         return run([python_exe(), "local_train.py", "--input", args.input, "--out", args.model_out, "--stride", str(args.stride)])
     if args.inference:
@@ -390,6 +411,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--leader-id", default=None)
     p.add_argument("--follower-id", default=None)
     p.add_argument("--fps", type=float, default=60.0)
+    p.add_argument("--camera-mode", choices=["ask", "yes", "no"], default="ask")
+    p.add_argument("--camera-fps", type=float, default=30.0)
+    p.add_argument("--camera-width", type=int, default=640)
+    p.add_argument("--camera-height", type=int, default=480)
+    p.add_argument("--camera-save-dir", default=None)
     p.set_defaults(func=teleop)
 
     p = sub.add_parser("robo", help="Local robotics operations.")
@@ -408,6 +434,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--leader-id", default=None)
     p.add_argument("--follower-id", default=None)
     p.add_argument("--fps", type=float, default=60.0)
+    p.add_argument("--camera-mode", choices=["ask", "yes", "no"], default="ask")
+    p.add_argument("--camera-fps", type=float, default=30.0)
+    p.add_argument("--camera-width", type=int, default=640)
+    p.add_argument("--camera-height", type=int, default=480)
+    p.add_argument("--camera-save-dir", default="recordings/latest/cameras")
     p.add_argument("--seconds", type=float, default=20.0)
     p.add_argument("--out", default="recordings/latest/observations.jsonl")
     p.add_argument("--input", default="recordings/latest/observations.jsonl")

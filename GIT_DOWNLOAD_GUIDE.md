@@ -49,6 +49,7 @@ Local record/train/inference:
 
 ```cmd
 pbl robo --record --seconds 20 --fps 10
+pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30
 pbl robo --train
 pbl robo --inference --speed-scale 0.02
 ```
@@ -58,6 +59,7 @@ If you have a leader arm on `COM8` for teleoperation:
 ```cmd
 pbl setup --port COM7 --leader-port COM8 --leader-id 1 --follower-id kitchen_stirrer_follower --cameras 1 2
 pbl teleop
+pbl teleop --camera-mode no
 ```
 
 ## Main Run Commands

@@ -16,6 +16,7 @@ setup(
         "local_record",
         "local_train",
         "local_inference",
+        "camera_runtime",
         "save_position",
         "upma_mode",
         "stir_motion",

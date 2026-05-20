@@ -127,10 +127,24 @@ Local teleoperation does not require Solo CLI:
 pbl teleop
 ```
 
+It asks whether you want cameras. Camera capture runs in background threads so teleop stays fast.
+
 With explicit ports:
 
 ```cmd
 pbl teleop --leader-port COM8 --follower-port COM7 --leader-id 1 --follower-id kitchen_stirrer_follower
+```
+
+Skip cameras:
+
+```cmd
+pbl teleop --camera-mode no
+```
+
+Use configured cameras without asking:
+
+```cmd
+pbl teleop --camera-mode yes --camera-fps 30 --camera-width 640 --camera-height 480
 ```
 
 Use teleop to move the robot to each pose, then save the pose.
@@ -295,6 +309,12 @@ pbl robo --replay
 ```
 
 `record` saves follower joint poses to JSONL. `train` builds a replay policy JSON from the recording. `inference` replays that policy safely through `move_to_position`. `replay` uses this project's local `replay_sequence.py`.
+
+Record with camera metadata and latest camera images:
+
+```cmd
+pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30
+```
 
 ## 15. Stop
 
