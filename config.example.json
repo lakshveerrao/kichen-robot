@@ -1,0 +1,24 @@
+{
+  "robot_type": "so101_follower",
+  "robot_port": "/dev/ttyACM0",
+  "robot_id": "kitchen_stirrer_follower",
+  "speed_scale": 0.2,
+  "move_delay_seconds": 2.0,
+  "positions_file": "positions.json",
+  "camera_indices": [1, 2],
+  "camera_width": 640,
+  "camera_height": 480,
+  "camera_fps": 30,
+  "enable_robot_cameras": false,
+  "upma_lift_clearance_degrees": 10.0,
+  "upma_low_pressure_lift_degrees": 6.0,
+  "upma_pan_bounds_degrees": {
+    "shoulder_pan_min": -25.0,
+    "shoulder_pan_max": 20.0
+  },
+  "upma_camera_boundary_check": true,
+  "upma_camera_roi": null,
+  "upma_camera_min_brightness": 8.0,
+  "upma_camera_max_brightness": 245.0,
+  "upma_camera_min_edge_score": 2.0
+}
