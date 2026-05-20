@@ -43,6 +43,19 @@ def import_lerobot_classes() -> tuple[Any, Any, Any, Any]:
     return SO101Leader, SO101LeaderConfig, SO101Follower, SO101FollowerConfig
 
 
+def add_write_retries(device: Any) -> None:
+    bus = getattr(device, "bus", None)
+    original_write = getattr(bus, "write", None)
+    if not callable(original_write):
+        return
+
+    def write_with_retry(*args: Any, **kwargs: Any):
+        kwargs["num_retry"] = max(int(kwargs.get("num_retry", 1)), 5)
+        return original_write(*args, **kwargs)
+
+    bus.write = write_with_retry
+
+
 def main() -> int:
     args = parse_args()
     if args.fps <= 0 or args.fps > 120:
@@ -95,6 +108,8 @@ def main() -> int:
                 cameras={},
             )
         )
+        add_write_retries(leader)
+        add_write_retries(follower)
 
         leader.connect()
         follower.connect()

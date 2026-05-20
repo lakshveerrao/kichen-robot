@@ -42,6 +42,19 @@ def selected_devices(device: str) -> tuple[str, ...]:
     return (device,)
 
 
+def add_write_retries(device: Any) -> None:
+    bus = getattr(device, "bus", None)
+    original_write = getattr(bus, "write", None)
+    if not callable(original_write):
+        return
+
+    def write_with_retry(*args: Any, **kwargs: Any):
+        kwargs["num_retry"] = max(int(kwargs.get("num_retry", 1)), 5)
+        return original_write(*args, **kwargs)
+
+    bus.write = write_with_retry
+
+
 def main() -> int:
     args = parse_args()
     if not CONFIG_PATH.exists():
@@ -90,6 +103,7 @@ def main() -> int:
                     )
                 )
                 label = "follower"
+            add_write_retries(robot)
 
             print(f"Starting {args.action} for {label}.")
             try:
