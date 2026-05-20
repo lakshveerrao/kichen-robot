@@ -83,11 +83,35 @@ def capture_camera_images(indices: list[int], width: int, height: int) -> list[d
 
 def extract_json(text: str) -> dict[str, Any]:
     text = text.strip()
+    if not text:
+        raise ValueError("OpenAI returned no text answer.")
     if text.startswith("```"):
         text = text.strip("`").strip()
         if text.startswith("json"):
             text = text[4:].strip()
+    start = text.find("{")
+    end = text.rfind("}")
+    if start >= 0 and end > start:
+        text = text[start : end + 1]
     return json.loads(text)
+
+
+def response_text(response: Any) -> str:
+    direct = getattr(response, "output_text", None)
+    if isinstance(direct, str) and direct.strip():
+        return direct
+
+    chunks: list[str] = []
+    for item in getattr(response, "output", []) or []:
+        for content in getattr(item, "content", []) or []:
+            text = getattr(content, "text", None)
+            if isinstance(text, str) and text.strip():
+                chunks.append(text)
+            elif isinstance(content, dict):
+                value = content.get("text")
+                if isinstance(value, str) and value.strip():
+                    chunks.append(value)
+    return "\n".join(chunks).strip()
 
 
 def ask_next_move(
@@ -131,12 +155,31 @@ def ask_next_move(
     for image in camera_images[:3]:
         content.append({"type": "input_text", "text": f"Camera {image['index']}:"})
         content.append({"type": "input_image", "image_url": image["data_url"]})
-    response = client.responses.create(
-        model=model,
-        instructions=instructions,
-        input=[{"role": "user", "content": content}],
-    )
-    decision = extract_json(response.output_text)
+    last_error: Exception | None = None
+    decision: dict[str, Any] | None = None
+    for attempt in range(2):
+        response = client.responses.create(
+            model=model,
+            instructions=instructions,
+            input=[{"role": "user", "content": content}],
+        )
+        text = response_text(response)
+        try:
+            decision = extract_json(text)
+            break
+        except Exception as exc:
+            last_error = exc
+            if attempt == 0:
+                content[0]["text"] = (
+                    str(content[0]["text"])
+                    + "\n\nPrevious response was not valid JSON or was empty. Return only JSON now."
+                )
+            else:
+                raise RuntimeError(
+                    "OpenAI did not return a usable JSON move. "
+                    f"Last error: {last_error}. Raw text length: {len(text)}"
+                ) from exc
+    assert decision is not None
     move = str(decision.get("move", "")).strip()
     if move not in ALLOWED_MOVES:
         move = "stop"

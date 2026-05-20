@@ -166,6 +166,8 @@ def agent(args: argparse.Namespace) -> int:
         command.append("--dry-run-command")
     if args.use_saved_poses:
         command.append("--use-saved-poses")
+    if args.model:
+        command.extend(["--model", args.model])
     command.extend(["--steps", str(args.steps)])
     command.extend(["--speed-scale", str(args.speed_scale), "--pause", str(args.pause)])
     return run(command)
@@ -443,6 +445,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--execute", action="store_true")
     p.add_argument("--dry-run-command", action="store_true")
     p.add_argument("--use-saved-poses", action="store_true")
+    p.add_argument("--model", default=None)
     p.add_argument("--steps", type=int, default=12)
     p.add_argument("--speed-scale", type=float, default=0.02)
     p.add_argument("--pause", type=float, default=0.4)

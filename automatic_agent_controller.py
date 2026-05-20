@@ -58,7 +58,7 @@ def command_for(args: argparse.Namespace) -> list[str]:
     speed = str(args.speed_scale)
     pause = str(args.pause)
     if not args.use_saved_poses:
-        return [
+        command = [
             python_exe,
             "visual_agent_runner.py",
             request_text_from_args(args),
@@ -70,6 +70,9 @@ def command_for(args: argparse.Namespace) -> list[str]:
             pause,
             "--yes",
         ]
+        if args.model:
+            command.extend(["--model", args.model])
+        return command
     command = [
         python_exe,
         "generic_pose_action.py",
