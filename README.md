@@ -85,8 +85,8 @@ pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30
 View camera frames and robot data in Rerun:
 
 ```cmd
-pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30 --rerun --rerun-spawn
-pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun --rerun-spawn
+pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30 --rerun
+pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun
 ```
 
 Rerun viewer: https://rerun.io/

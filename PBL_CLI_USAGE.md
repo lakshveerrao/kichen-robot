@@ -156,7 +156,7 @@ pbl teleop --leader-port COM8 --follower-port COM7
 Teleop with Rerun camera view and robot data:
 
 ```cmd
-pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30 --rerun --rerun-spawn
+pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30 --rerun
 ```
 
 Rerun viewer: https://rerun.io/
@@ -333,7 +333,7 @@ pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30
 Record with live Rerun camera/data logging:
 
 ```cmd
-pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun --rerun-spawn
+pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun
 ```
 
 ## 15. Stop

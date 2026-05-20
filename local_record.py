@@ -28,7 +28,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--camera-height", type=int, default=480)
     parser.add_argument("--camera-save-dir", default="recordings/latest/cameras")
     parser.add_argument("--rerun", action="store_true", help="Stream camera frames and robot data to Rerun.")
-    parser.add_argument("--rerun-spawn", action="store_true", help="Open the Rerun viewer when --rerun is used.")
+    parser.add_argument("--rerun-spawn", action="store_true", help="Compatibility option. --rerun opens the viewer by default.")
+    parser.add_argument("--no-rerun-spawn", action="store_true", help="Log to Rerun without opening the viewer.")
     parser.add_argument("--rerun-every", type=int, default=5, help="Log every N camera/record frames to Rerun.")
     parser.add_argument("--yes", action="store_true")
     return parser.parse_args()
@@ -60,7 +61,7 @@ def main() -> int:
         if not args.yes:
             input("Press Enter to connect and record, or Ctrl+C to cancel.")
         if args.rerun:
-            rr = start_rerun("pbl_so101_record", spawn=args.rerun_spawn)
+            rr = start_rerun("pbl_so101_record", spawn=not args.no_rerun_spawn)
         cameras = BackgroundCameraSet(
             camera_indices,
             args.camera_width,
