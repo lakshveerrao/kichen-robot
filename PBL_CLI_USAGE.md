@@ -138,13 +138,19 @@ pbl teleop --leader-port COM8 --follower-port COM7 --leader-id 1 --follower-id k
 Skip cameras:
 
 ```cmd
-pbl teleop --camera-mode no
+pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode no
 ```
 
 Use configured cameras without asking:
 
 ```cmd
-pbl teleop --camera-mode yes --camera-fps 30 --camera-width 640 --camera-height 480
+pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30
+```
+
+Teleop with camera prompt:
+
+```cmd
+pbl teleop --leader-port COM8 --follower-port COM7
 ```
 
 Use teleop to move the robot to each pose, then save the pose.

@@ -194,8 +194,9 @@ pbl robo --calibrate all --leader-port COM8 --follower-port COM7</code></pre>
         <p>Explicit ports:</p>
         <pre><code>pbl teleop --leader-port COM8 --follower-port COM7 --leader-id 1 --follower-id kitchen_stirrer_follower</code></pre>
         <p>Skip cameras or use configured cameras without asking:</p>
-        <pre><code>pbl teleop --camera-mode no
-pbl teleop --camera-mode yes --camera-fps 30</code></pre>
+        <pre><code>pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode no
+pbl teleop --leader-port COM8 --follower-port COM7
+pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30</code></pre>
         <p>Stop teleop with <code>Ctrl+C</code>.</p>
       </section>
 
