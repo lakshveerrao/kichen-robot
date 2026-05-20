@@ -126,9 +126,11 @@
       <nav>
         <a href="#install">Install</a>
         <a href="#configure">Configure</a>
+        <a href="#motors">Motor IDs</a>
         <a href="#teleop">Teleop</a>
         <a href="#poses">Save Poses</a>
         <a href="#run">Run</a>
+        <a href="#learning">Record/Train</a>
         <a href="#chatgpt">ChatGPT</a>
         <a href="#huggingface">Hugging Face</a>
         <a href="#git">Git</a>
@@ -172,8 +174,20 @@ mode</code></pre>
         <pre><code>pbl setup --port COM7 --leader-port COM8 --leader-id 1 --follower-id kitchen_stirrer_follower --cameras 1 2</code></pre>
       </section>
 
+      <section id="motors">
+        <h2>3. Assign Motor IDs And Calibrate</h2>
+        <p>Only assign motor IDs for a new robot or after replacing motors. LeRobot will ask you to connect one motor at a time.</p>
+        <pre><code>pbl setup-motors --device all
+pbl robo --setup-motors all</code></pre>
+        <p>Calibrate follower only:</p>
+        <pre><code>pbl calibrate --device follower --follower-port COM7</code></pre>
+        <p>Calibrate leader and follower:</p>
+        <pre><code>pbl calibrate --device all --leader-port COM8 --follower-port COM7
+pbl robo --calibrate all --leader-port COM8 --follower-port COM7</code></pre>
+      </section>
+
       <section id="teleop">
-        <h2>3. Teleoperation Without Solo CLI</h2>
+        <h2>4. Teleoperation Without Solo CLI</h2>
         <p>This project does not require Solo CLI. Teleop uses local LeRobot leader/follower APIs.</p>
         <pre><code>pbl teleop</code></pre>
         <p>Explicit ports:</p>
@@ -182,7 +196,7 @@ mode</code></pre>
       </section>
 
       <section id="poses">
-        <h2>4. Save Poses</h2>
+        <h2>5. Save Poses</h2>
         <p>Move the robot to the pose using teleop or by hand, then save only that pose.</p>
         <h3>Main Poses</h3>
         <pre><code>pbl save-pose HOME
@@ -213,7 +227,7 @@ pbl save-pose STIRRER_READY</code></pre>
       </section>
 
       <section id="run">
-        <h2>5. Validate And Run</h2>
+        <h2>6. Validate And Run</h2>
         <div class="grid">
           <div class="card">
             <b>No Movement</b>
@@ -242,8 +256,17 @@ pbl ingredients --action all</code></pre>
         <p>Open <code>http://127.0.0.1:8000</code>.</p>
       </section>
 
+      <section id="learning">
+        <h2>7. Local Record, Train, Inference</h2>
+        <p>This is a simple local pose-sequence workflow. It does not require Solo CLI.</p>
+        <pre><code>pbl robo --record --seconds 20 --fps 10
+pbl robo --train --input recordings/latest/observations.jsonl --model-out models/latest_policy.json
+pbl robo --inference --policy models/latest_policy.json --speed-scale 0.02
+pbl robo --replay</code></pre>
+      </section>
+
       <section id="chatgpt">
-        <h2>6. ChatGPT Brain</h2>
+        <h2>8. ChatGPT Brain</h2>
         <p>Do not put API keys in code or Git.</p>
         <h3>Command Prompt</h3>
         <pre><code>set OPENAI_API_KEY=your_new_api_key_here
@@ -256,7 +279,7 @@ pbl brain "pick the cup, grab the stick tight, and stir slowly" --execute</code>
       </section>
 
       <section id="huggingface">
-        <h2>7. Hugging Face</h2>
+        <h2>9. Hugging Face</h2>
         <pre><code>pbl login
 pbl whoami
 pbl download lakshveeer/robot --repo-type dataset
@@ -264,7 +287,7 @@ pbl push-hf username/my-upma-dataset --repo-type dataset --folder .</code></pre>
       </section>
 
       <section id="git">
-        <h2>8. Git Update And Push</h2>
+        <h2>10. Git Update And Push</h2>
         <pre><code>cd C:\Users\PBL\so101_kitchen_stirrer_milestone
 git pull
 git add .

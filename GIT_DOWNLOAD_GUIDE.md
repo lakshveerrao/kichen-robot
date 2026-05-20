@@ -33,6 +33,26 @@ pbl setup --port COM7 --cameras 1 2
 pbl status
 ```
 
+Assign motor IDs for a new robot only:
+
+```cmd
+pbl setup-motors --device all
+```
+
+Calibrate:
+
+```cmd
+pbl calibrate --device follower --follower-port COM7
+```
+
+Local record/train/inference:
+
+```cmd
+pbl robo --record --seconds 20 --fps 10
+pbl robo --train
+pbl robo --inference --speed-scale 0.02
+```
+
 If you have a leader arm on `COM8` for teleoperation:
 
 ```cmd

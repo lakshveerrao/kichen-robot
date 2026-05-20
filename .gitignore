@@ -12,6 +12,9 @@ dashboard.out.log
 dashboard.err.log
 *.log
 
+recordings/
+models/
+
 camera_*_snapshot.jpg
 
 .pytest_cache/

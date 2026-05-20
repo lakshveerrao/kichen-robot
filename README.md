@@ -46,6 +46,28 @@ pbl setup --port COM7 --leader-port COM8 --cameras 1 2
 pbl status
 ```
 
+Assign motor IDs for a new robot:
+
+```cmd
+pbl setup-motors --device all
+pbl robo --setup-motors all
+```
+
+Calibrate:
+
+```cmd
+pbl calibrate --device follower --follower-port COM7
+pbl robo --calibrate all --leader-port COM8 --follower-port COM7
+```
+
+Record/train/inference locally without Solo:
+
+```cmd
+pbl robo --record --seconds 20 --fps 10
+pbl robo --train --input recordings/latest/observations.jsonl --model-out models/latest_policy.json
+pbl robo --inference --policy models/latest_policy.json --speed-scale 0.02
+```
+
 Full calibration and run guide:
 
 ```cmd

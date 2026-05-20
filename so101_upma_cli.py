@@ -85,8 +85,8 @@ def status(_: argparse.Namespace) -> int:
 
 def calibrate(args: argparse.Namespace) -> int:
     config = load_config()
-    port = args.port or config.get("robot_port") or "COM7"
-    robot_id = args.robot_id or config.get("robot_id") or "kitchen_stirrer_follower"
+    port = args.port or config.get("robot_port") or config.get("follower_port") or "COM7"
+    robot_id = args.robot_id or config.get("follower_id") or config.get("robot_id") or "kitchen_stirrer_follower"
     return run(
         [
             str(ROOT / ".venv" / "Scripts" / "lerobot-calibrate.exe"),
@@ -95,6 +95,25 @@ def calibrate(args: argparse.Namespace) -> int:
             f"--robot.id={robot_id}",
         ]
     )
+
+
+def robot_admin(args: argparse.Namespace, action: str, device: str) -> int:
+    command = [python_exe(), "local_robot_admin.py", "--action", action, "--device", device]
+    if getattr(args, "yes", False):
+        command.append("--yes")
+    if getattr(args, "leader_port", None):
+        command.extend(["--leader-port", args.leader_port])
+    if getattr(args, "follower_port", None):
+        command.extend(["--follower-port", args.follower_port])
+    elif getattr(args, "port", None):
+        command.extend(["--follower-port", args.port])
+    if getattr(args, "leader_id", None):
+        command.extend(["--leader-id", args.leader_id])
+    if getattr(args, "follower_id", None):
+        command.extend(["--follower-id", args.follower_id])
+    elif getattr(args, "robot_id", None):
+        command.extend(["--follower-id", args.robot_id])
+    return run(command)
 
 
 def teleop(args: argparse.Namespace) -> int:
@@ -311,26 +330,21 @@ def push_hf(args: argparse.Namespace) -> int:
 
 
 def robo(args: argparse.Namespace) -> int:
+    if args.setup_motors:
+        return robot_admin(args, "setup-motors", args.setup_motors)
     if args.calibrate:
-        if args.calibrate == "follower":
-            return calibrate(args)
-        print("Local all/leader calibration is not implemented yet. Use LeRobot's installed calibration command directly.")
-        print("Follower calibration works with: pbl robo --calibrate follower --port COM7")
-        return 1
+        return robot_admin(args, "calibrate", args.calibrate)
     if args.teleop:
         return teleop(args)
     if args.record:
-        print("Local recording is not implemented yet. This PBL CLI no longer depends on Solo.")
-        return 1
+        return run([python_exe(), "local_record.py", "--out", args.out, "--seconds", str(args.seconds), "--fps", str(args.fps), "--yes"])
     if args.train:
-        print("Local training is not implemented yet. This PBL CLI no longer depends on Solo.")
-        return 1
+        return run([python_exe(), "local_train.py", "--input", args.input, "--out", args.model_out, "--stride", str(args.stride)])
     if args.inference:
-        print("Local inference is not implemented yet. This PBL CLI no longer depends on Solo.")
-        return 1
+        return run([python_exe(), "local_inference.py", "--policy", args.policy, "--speed-scale", str(args.speed_scale), "--pause", str(args.pause), "--yes"])
     if args.replay:
         return run([python_exe(), "replay_sequence.py", "--yes"])
-    print("Choose one robo action: --calibrate, --teleop, --record, --train, --inference, or --replay.")
+    print("Choose one robo action: --setup-motors, --calibrate, --teleop, --record, --train, --inference, or --replay.")
     return 1
 
 
@@ -349,10 +363,25 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("status", help="Show config and test robot connection.")
     p.set_defaults(func=status)
 
-    p = sub.add_parser("calibrate", help="Run LeRobot follower calibration.")
+    p = sub.add_parser("setup-motors", help="Assign SO-101 motor IDs locally.")
+    p.add_argument("--device", choices=["leader", "follower", "all"], default="all")
+    p.add_argument("--leader-port", default=None)
+    p.add_argument("--follower-port", default=None)
+    p.add_argument("--leader-id", default=None)
+    p.add_argument("--follower-id", default=None)
+    p.add_argument("-y", "--yes", action="store_true")
+    p.set_defaults(func=lambda args: robot_admin(args, "setup-motors", args.device))
+
+    p = sub.add_parser("calibrate", help="Run local SO-101 calibration.")
+    p.add_argument("--device", choices=["leader", "follower", "all"], default="follower")
     p.add_argument("--port", default=None)
     p.add_argument("--robot-id", default=None)
-    p.set_defaults(func=calibrate)
+    p.add_argument("--leader-port", default=None)
+    p.add_argument("--follower-port", default=None)
+    p.add_argument("--leader-id", default=None)
+    p.add_argument("--follower-id", default=None)
+    p.add_argument("-y", "--yes", action="store_true")
+    p.set_defaults(func=lambda args: robot_admin(args, "calibrate", args.device))
 
     p = sub.add_parser("teleop", help="Run local leader-to-follower teleoperation without Solo.")
     p.add_argument("-y", "--yes", action="store_true")
@@ -361,9 +390,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--leader-id", default=None)
     p.add_argument("--follower-id", default=None)
     p.add_argument("--fps", type=float, default=60.0)
+    p.add_argument("--seconds", type=float, default=20.0)
+    p.add_argument("--out", default="recordings/latest/observations.jsonl")
+    p.add_argument("--input", default="recordings/latest/observations.jsonl")
+    p.add_argument("--model-out", default="models/latest_policy.json")
+    p.add_argument("--policy", default="models/latest_policy.json")
+    p.add_argument("--stride", type=int, default=1)
+    p.add_argument("--speed-scale", type=float, default=0.02)
+    p.add_argument("--pause", type=float, default=0.05)
     p.set_defaults(func=teleop)
 
-    p = sub.add_parser("robo", help="Solo-style robotics operations.")
+    p = sub.add_parser("robo", help="Local robotics operations.")
+    p.add_argument("--setup-motors", choices=["all", "leader", "follower"], default=None)
     p.add_argument("--calibrate", choices=["all", "leader", "follower"], default=None)
     p.add_argument("--teleop", action="store_true")
     p.add_argument("--record", action="store_true")

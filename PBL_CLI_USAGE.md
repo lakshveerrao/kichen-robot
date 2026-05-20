@@ -6,6 +6,7 @@ It works like a small robot CLI for this SO-101 kitchen robot project. It does n
 
 - setup
 - status
+- motor ID assignment
 - calibration
 - teleoperation
 - pose saving
@@ -78,17 +79,47 @@ Check Windows ports manually:
 mode
 ```
 
-## 4. Calibrate
+## 4. Assign Motor IDs
+
+Only do this for a new robot or after replacing motors. LeRobot will ask you to connect only one motor at a time.
+
+```cmd
+pbl setup-motors --device all
+```
+
+Follower only:
+
+```cmd
+pbl setup-motors --device follower --follower-port COM7
+```
+
+Same command through `robo`:
+
+```cmd
+pbl robo --setup-motors all
+```
+
+## 5. Calibrate
 
 Calibrate follower only:
 
 ```cmd
-pbl calibrate --port COM7
+pbl calibrate --device follower --follower-port COM7
 ```
 
-Follower calibration does not require Solo CLI. Full leader+follower calibration is not wrapped yet; use the installed LeRobot calibration tool directly if you need to recalibrate the leader.
+Calibrate leader and follower:
 
-## 5. Teleoperation
+```cmd
+pbl calibrate --device all --leader-port COM8 --follower-port COM7
+```
+
+Same command through `robo`:
+
+```cmd
+pbl robo --calibrate all --leader-port COM8 --follower-port COM7
+```
+
+## 6. Teleoperation
 
 Local teleoperation does not require Solo CLI:
 
@@ -104,7 +135,7 @@ pbl teleop --leader-port COM8 --follower-port COM7 --leader-id 1 --follower-id k
 
 Use teleop to move the robot to each pose, then save the pose.
 
-## 6. Save Poses
+## 7. Save Poses
 
 Move the robot first, then save only that pose.
 
@@ -146,14 +177,14 @@ pbl save-pose STIRRER_LIFT
 pbl save-pose STIRRER_READY
 ```
 
-## 7. Validate Without Movement
+## 8. Validate Without Movement
 
 ```cmd
 pbl dry-run
 pbl dry-run --ingredients
 ```
 
-## 8. Test Small Real Movements
+## 9. Test Small Real Movements
 
 ```cmd
 pbl stir --motion front-back --cycles 1
@@ -161,7 +192,7 @@ pbl stir --motion left-right --cycles 1
 pbl ingredients --action all
 ```
 
-## 9. Run The Robot
+## 10. Run The Robot
 
 Run normal upma stirring:
 
@@ -193,7 +224,7 @@ Grip and move down:
 pbl grip-down --tight -5
 ```
 
-## 10. Dashboard
+## 11. Dashboard
 
 Dry-run dashboard:
 
@@ -213,7 +244,7 @@ Open:
 http://127.0.0.1:8000
 ```
 
-## 11. ChatGPT Brain
+## 12. ChatGPT Brain
 
 Command Prompt:
 
@@ -231,7 +262,7 @@ pbl brain "pick the cup, grab the stick tight, and stir slowly"
 pbl brain "pick the cup, grab the stick tight, and stir slowly" --execute
 ```
 
-## 12. Hugging Face
+## 13. Hugging Face
 
 Login:
 
@@ -252,17 +283,20 @@ Upload dataset/project folder:
 pbl push-hf username/my-upma-dataset --repo-type dataset --folder .
 ```
 
-## 13. Recording, Training, Inference
+## 14. Record, Train, Inference, Replay
 
-This PBL CLI does not depend on Solo CLI. Local recording, training, and inference wrappers are not implemented yet.
+This PBL CLI does not depend on Solo CLI. It includes a simple local pose-sequence workflow:
 
 ```cmd
+pbl robo --record --seconds 20 --fps 10
+pbl robo --train --input recordings/latest/observations.jsonl --model-out models/latest_policy.json
+pbl robo --inference --policy models/latest_policy.json --speed-scale 0.02
 pbl robo --replay
 ```
 
-`pbl robo --replay` uses this project's local `replay_sequence.py`.
+`record` saves follower joint poses to JSONL. `train` builds a replay policy JSON from the recording. `inference` replays that policy safely through `move_to_position`. `replay` uses this project's local `replay_sequence.py`.
 
-## 14. Stop
+## 15. Stop
 
 ```cmd
 pbl stop
