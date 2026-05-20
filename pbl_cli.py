@@ -334,7 +334,10 @@ def robo(args: argparse.Namespace) -> int:
     if args.inference:
         return run([python_exe(), "local_inference.py", "--policy", args.policy, "--speed-scale", str(args.speed_scale), "--pause", str(args.pause), "--yes"])
     if args.replay:
-        return run([python_exe(), "replay_sequence.py", "--yes"])
+        command = [python_exe(), "local_inference.py", "--policy", args.policy, "--speed-scale", str(args.speed_scale), "--pause", str(args.pause), "--yes"]
+        if args.max_steps is not None:
+            command.extend(["--max-steps", str(args.max_steps)])
+        return run(command)
     print("Choose one robo action: --setup-motors, --calibrate, --teleop, --record, --train, --inference, or --replay.")
     return 1
 
@@ -426,6 +429,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--input", default="recordings/latest")
     p.add_argument("--model-out", default="models/latest_policy.json")
     p.add_argument("--policy", default="models/latest_policy.json")
+    p.add_argument("--max-steps", type=int, default=None)
     p.add_argument("--stride", type=int, default=1)
     p.add_argument("--speed-scale", type=float, default=0.02)
     p.add_argument("--pause", type=float, default=0.05)

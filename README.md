@@ -104,7 +104,7 @@ Replay/inference:
 
 ```cmd
 pbl robo --inference --policy models/latest_policy.json --speed-scale 0.02
-pbl robo --replay
+pbl robo --replay --policy models/latest_policy.json --speed-scale 0.02
 ```
 
 Record and push to Hugging Face:

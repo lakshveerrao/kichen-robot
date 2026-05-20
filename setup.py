@@ -22,7 +22,6 @@ setup(
         "generic_pose_action",
         "save_position",
         "manual_control",
-        "replay_sequence",
     ],
     install_requires=[
         "lerobot[feetech]",
