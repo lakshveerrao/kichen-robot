@@ -158,7 +158,62 @@ def save_pose(args: argparse.Namespace) -> int:
     return run(command)
 
 
+def vision_pickup(args: argparse.Namespace) -> int:
+    command = [
+        python_exe(),
+        "vision_pickup.py",
+        "--camera-index",
+        str(args.camera_index),
+        "--seconds",
+        str(args.seconds),
+        "--speed-scale",
+        str(args.speed_scale),
+        "--grip-close",
+        str(args.grip_close),
+        "--grip-open",
+        str(args.grip_open),
+        "--save-dir",
+        args.save_dir,
+        "--yes",
+    ]
+    if args.place:
+        command.append("--place")
+    if args.learned_fast:
+        command.append("--learned-fast")
+    if args.continuous:
+        command.append("--continuous")
+    return run(command)
+
+
 def agent(args: argparse.Namespace) -> int:
+    request_text = " ".join(args.request).lower()
+    if ("pick" in request_text or "pickup" in request_text) and "pen" in request_text:
+        command = [
+            python_exe(),
+            "vision_pickup.py",
+            "--camera-index",
+            "1",
+            "--continuous",
+            "--seconds",
+            str(max(float(args.steps) * 6.0, 60.0)),
+            "--speed-scale",
+            str(args.speed_scale),
+            "--grip-close",
+            "18",
+            "--grip-open",
+            "42",
+            "--save-dir",
+            "agent_attempt/agent_pickup_pen",
+            "--yes",
+        ]
+        if "cup" in request_text or "place" in request_text:
+            command.append("--place")
+        if args.plan_only:
+            print("Planned no-model vision command:")
+            print(" ".join(command))
+            return 0
+        return run(command)
+
     command = [python_exe(), "automatic_agent_controller.py", *args.request]
     if args.plan_only:
         command.append("--plan-only")
@@ -445,6 +500,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("name")
     p.add_argument("--force", action="store_true")
     p.set_defaults(func=save_pose)
+
+    p = sub.add_parser("vision-pickup", help="No-AI wrist-camera pen pickup.")
+    p.add_argument("--camera-index", type=int, default=1)
+    p.add_argument("--seconds", type=float, default=90.0)
+    p.add_argument("--speed-scale", type=float, default=0.01)
+    p.add_argument("--grip-close", type=float, default=18.0)
+    p.add_argument("--grip-open", type=float, default=42.0)
+    p.add_argument("--save-dir", default="agent_attempt/no_ai_vision_pickup")
+    p.add_argument("--place", action="store_true")
+    p.add_argument("--learned-fast", action="store_true")
+    p.add_argument("--continuous", action="store_true")
+    p.set_defaults(func=vision_pickup)
 
     p = sub.add_parser("agent", help="Camera-aware automatic agent controller.")
     p.add_argument("request", nargs="*")

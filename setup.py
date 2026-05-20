@@ -19,6 +19,7 @@ setup(
         "camera_runtime",
         "automatic_agent_controller",
         "visual_agent_runner",
+        "vision_pickup",
         "generic_pose_action",
         "save_position",
         "manual_control",

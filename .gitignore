@@ -16,6 +16,8 @@ recordings/
 models/
 
 camera_*_snapshot.jpg
+agent_attempt/
+camera_scan/
 
 .pytest_cache/
 .mypy_cache/
