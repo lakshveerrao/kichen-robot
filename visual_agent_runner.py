@@ -20,8 +20,12 @@ ALLOWED_MOVES = {
     "pan_right",
     "lift_up",
     "lift_down",
+    "elbow_forward",
+    "elbow_back",
     "wrist_forward",
     "wrist_back",
+    "wrist_roll_left",
+    "wrist_roll_right",
     "open_gripper",
     "close_gripper",
     "hold",
@@ -97,10 +101,11 @@ def ask_next_move(
     instructions = (
         "You are controlling an SO-101 robot through small bounded relative moves only. "
         "Use the camera images and current joint position to choose exactly one next move. "
-        "Allowed moves: pan_left, pan_right, lift_up, lift_down, wrist_forward, wrist_back, "
-        "open_gripper, close_gripper, hold, done, stop. "
+        "Allowed moves: pan_left, pan_right, lift_up, lift_down, elbow_forward, elbow_back, "
+        "wrist_forward, wrist_back, wrist_roll_left, wrist_roll_right, open_gripper, close_gripper, "
+        "hold, done, stop. "
         "Never output raw joint angles. If uncertain or unsafe, choose stop. "
-        "Return only JSON with keys: move, reason."
+        "Return only JSON with keys: move, amount, reason. amount must be 0.25, 0.5, 0.75, or 1.0."
     )
     content: list[dict[str, Any]] = [
         {
@@ -135,27 +140,43 @@ def ask_next_move(
     move = str(decision.get("move", "")).strip()
     if move not in ALLOWED_MOVES:
         move = "stop"
-    return {"move": move, "reason": str(decision.get("reason", ""))}
+    try:
+        amount = float(decision.get("amount", 0.5))
+    except (TypeError, ValueError):
+        amount = 0.5
+    amount = min(1.0, max(0.25, amount))
+    return {"move": move, "amount": str(amount), "reason": str(decision.get("reason", ""))}
 
 
-def target_for_move(current: dict[str, float], move: str) -> dict[str, float] | None:
+def target_for_move(current: dict[str, float], move: str, amount: float) -> dict[str, float] | None:
     target = dict(current)
+    joint_step = 2.0 * amount
+    lift_step = 1.5 * amount
+    grip_step = 18.0 * amount
     if move == "pan_left":
-        target["shoulder_pan.pos"] -= 2.0
+        target["shoulder_pan.pos"] -= joint_step
     elif move == "pan_right":
-        target["shoulder_pan.pos"] += 2.0
+        target["shoulder_pan.pos"] += joint_step
     elif move == "lift_up":
-        target["shoulder_lift.pos"] += 1.5
+        target["shoulder_lift.pos"] += lift_step
     elif move == "lift_down":
-        target["shoulder_lift.pos"] -= 1.5
+        target["shoulder_lift.pos"] -= lift_step
+    elif move == "elbow_forward":
+        target["elbow_flex.pos"] -= joint_step
+    elif move == "elbow_back":
+        target["elbow_flex.pos"] += joint_step
     elif move == "wrist_forward":
-        target["wrist_flex.pos"] -= 2.0
+        target["wrist_flex.pos"] -= joint_step
     elif move == "wrist_back":
-        target["wrist_flex.pos"] += 2.0
+        target["wrist_flex.pos"] += joint_step
+    elif move == "wrist_roll_left":
+        target["wrist_roll.pos"] -= joint_step
+    elif move == "wrist_roll_right":
+        target["wrist_roll.pos"] += joint_step
     elif move == "open_gripper":
-        target["gripper.pos"] = min(95.0, target["gripper.pos"] + 18.0)
+        target["gripper.pos"] = min(95.0, target["gripper.pos"] + grip_step)
     elif move == "close_gripper":
-        target["gripper.pos"] = max(-5.0, target["gripper.pos"] - 18.0)
+        target["gripper.pos"] = max(-5.0, target["gripper.pos"] - grip_step)
     elif move in {"hold", "done", "stop"}:
         return None
     else:
@@ -195,7 +216,8 @@ def main() -> int:
             print(f"Step {step}/{args.steps}: captured {len(images)} camera frame(s).")
             decision = ask_next_move(client, args.model, args.request, step, position, images)
             move = decision["move"]
-            print(f"Agent move: {move} - {decision['reason']}")
+            amount = float(decision.get("amount", 0.5))
+            print(f"Agent move: {move} amount={amount} - {decision['reason']}")
             if move == "done":
                 print("Agent reports task complete.")
                 return 0
@@ -203,7 +225,7 @@ def main() -> int:
                 print("Agent requested stop.")
                 stop_robot(robot)
                 return 1
-            target = target_for_move(position, move)
+            target = target_for_move(position, move, amount)
             if target is None:
                 time.sleep(args.pause)
                 continue

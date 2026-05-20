@@ -195,7 +195,7 @@ Run it automatically with cameras and bounded micro-moves from the current robot
 pbl agent "pick up the pen and place it in the cup" --execute --steps 12
 ```
 
-This does not require saving poses. It uses small camera-guided moves only: pan, lift, wrist, open gripper, close gripper, hold, done, or stop.
+This does not require saving poses and is not locked to pen/cup. The agent reads the request and camera frames, then repeatedly chooses the next bounded move. It can change places by combining small moves: pan, lift, elbow, wrist, wrist roll, open gripper, close gripper, hold, done, or stop.
 
 Optional saved-pose mode:
 

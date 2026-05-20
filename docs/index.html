@@ -272,7 +272,7 @@ pbl ingredients --action all</code></pre>
 pbl agent</code></pre>
         <p>Pen-to-cup without saved poses:</p>
         <pre><code>pbl agent "pick up the pen and place it in the cup" --execute --steps 12</code></pre>
-        <p>The no-saved-poses path only uses small allowed moves: pan, lift, wrist, open gripper, close gripper, hold, done, or stop.</p>
+        <p>The no-saved-poses path is not hardcoded to pen/cup. It reads the request and camera frames, then repeatedly chooses the next bounded move: pan, lift, elbow, wrist, wrist roll, open gripper, close gripper, hold, done, or stop.</p>
         <p>Optional saved-pose mode:</p>
         <pre><code>pbl save-pose PEN_APPROACH --force
 pbl save-pose PEN_GRASP --force

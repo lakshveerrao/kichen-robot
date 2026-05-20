@@ -100,7 +100,7 @@ Pen-to-cup without saved poses:
 pbl agent "pick up the pen and place it in the cup" --execute --steps 12
 ```
 
-This uses camera-guided bounded micro-moves from the current robot pose.
+This is not hardcoded to pen/cup. It uses camera-guided bounded micro-moves from the current robot pose for the request you type.
 
 ## Documentation Site
 

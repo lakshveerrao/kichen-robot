@@ -337,7 +337,7 @@ It asks what it should do. To run pen-to-cup without saved poses, use camera-gui
 pbl agent "pick up the pen and place it in the cup" --execute --steps 12
 ```
 
-This does not require saving poses. The robot only uses small bounded moves from its current position: pan, lift, wrist, open gripper, close gripper, hold, done, or stop.
+This does not require saving poses and is not locked to pen/cup. The agent reads the request and camera frames, then repeatedly chooses the next bounded move from its current position: pan, lift, elbow, wrist, wrist roll, open gripper, close gripper, hold, done, or stop.
 
 Optional saved-pose mode:
 
