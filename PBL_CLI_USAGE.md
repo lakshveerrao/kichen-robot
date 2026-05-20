@@ -311,7 +311,47 @@ Upload dataset/project folder:
 pbl push-hf username/my-upma-dataset --repo-type dataset --folder .
 ```
 
-## 14. Record, Train, Inference, Replay
+## 14. Automatic Agent Controller
+
+Set your OpenAI API key in the terminal, not in code:
+
+```cmd
+set OPENAI_API_KEY=your_api_key_here
+```
+
+Start the dashboard:
+
+```cmd
+pbl dashboard --allow-movement
+```
+
+Use the Automatic Agent Controller bar and type:
+
+```text
+pick up the pen and place it in the cup
+```
+
+For that task, save these poses first:
+
+```cmd
+pbl save-pose PEN_APPROACH --force
+pbl save-pose PEN_GRASP --force
+pbl save-pose PEN_LIFT --force
+pbl save-pose CUP_TARGET --force
+pbl save-pose PEN_RELEASE --force
+pbl save-pose PEN_RETREAT --force
+```
+
+CLI version:
+
+```cmd
+pbl agent "pick up the pen and place it in the cup"
+pbl agent "pick up the pen and place it in the cup" --execute
+```
+
+The agent uses cameras and ChatGPT, but it only runs bounded project actions. It does not invent raw joint angles.
+
+## 15. Record, Train, Inference, Replay
 
 This PBL CLI does not depend on Solo CLI. Recording is episode-based, similar to LeRobot data collection demos. If you do not pass `--episodes` or `--seconds`, it asks you:
 
@@ -358,7 +398,7 @@ Record with live Rerun camera/data logging:
 pbl robo --record --episodes 1 --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun
 ```
 
-## 15. Stop
+## 16. Stop
 
 ```cmd
 pbl stop

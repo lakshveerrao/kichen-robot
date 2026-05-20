@@ -262,6 +262,16 @@ def brain(args: argparse.Namespace) -> int:
     return run(command)
 
 
+def agent(args: argparse.Namespace) -> int:
+    command = [python_exe(), "automatic_agent_controller.py", args.request]
+    if args.execute:
+        command.append("--execute")
+    if args.dry_run_command:
+        command.append("--dry-run-command")
+    command.extend(["--speed-scale", str(args.speed_scale), "--pause", str(args.pause)])
+    return run(command)
+
+
 def dashboard(args: argparse.Namespace) -> int:
     command = [python_exe(), "kitchen_robot_server.py"]
     if args.allow_movement:
@@ -556,6 +566,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--pause", type=float, default=0.25)
     p.add_argument("--cycles", type=int, default=5)
     p.set_defaults(func=brain)
+
+    p = sub.add_parser("agent", help="Camera-aware automatic agent controller.")
+    p.add_argument("request")
+    p.add_argument("--execute", action="store_true")
+    p.add_argument("--dry-run-command", action="store_true")
+    p.add_argument("--speed-scale", type=float, default=0.02)
+    p.add_argument("--pause", type=float, default=0.4)
+    p.set_defaults(func=agent)
 
     p = sub.add_parser("dashboard", help="Start localhost dashboard.")
     p.add_argument("--allow-movement", action="store_true")

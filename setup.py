@@ -17,6 +17,8 @@ setup(
         "local_train",
         "local_inference",
         "camera_runtime",
+        "automatic_agent_controller",
+        "generic_pose_action",
         "save_position",
         "upma_mode",
         "stir_motion",

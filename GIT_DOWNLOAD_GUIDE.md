@@ -79,6 +79,32 @@ pbl smart --cycles 5 --tight -5 --open 30
 pbl dashboard --allow-movement
 ```
 
+## Automatic Agent Controller
+
+Set your OpenAI API key in the terminal, then start the dashboard:
+
+```cmd
+set OPENAI_API_KEY=your_api_key_here
+pbl dashboard --allow-movement
+```
+
+For "pick up the pen and place it in the cup", save these poses first:
+
+```cmd
+pbl save-pose PEN_APPROACH --force
+pbl save-pose PEN_GRASP --force
+pbl save-pose PEN_LIFT --force
+pbl save-pose CUP_TARGET --force
+pbl save-pose PEN_RELEASE --force
+pbl save-pose PEN_RETREAT --force
+```
+
+Then use the dashboard agent bar, or run:
+
+```cmd
+pbl agent "pick up the pen and place it in the cup" --execute
+```
+
 ## Documentation Site
 
 Site source is in:

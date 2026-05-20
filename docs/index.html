@@ -130,6 +130,7 @@
         <a href="#teleop">Teleop</a>
         <a href="#poses">Save Poses</a>
         <a href="#run">Run</a>
+        <a href="#agent">Agent</a>
         <a href="#learning">Record/Train</a>
         <a href="#chatgpt">ChatGPT</a>
         <a href="#huggingface">Hugging Face</a>
@@ -264,8 +265,27 @@ pbl ingredients --action all</code></pre>
         <p>Open <code>http://127.0.0.1:8000</code>.</p>
       </section>
 
+      <section id="agent">
+        <h2>7. Automatic Agent Controller</h2>
+        <p>The dashboard includes an Automatic Agent Controller bar. It uses configured camera frames and ChatGPT, then selects one bounded local robot command.</p>
+        <pre><code>set OPENAI_API_KEY=your_api_key_here
+pbl dashboard --allow-movement</code></pre>
+        <p>For pen-to-cup, save calibrated poses first:</p>
+        <pre><code>pbl save-pose PEN_APPROACH --force
+pbl save-pose PEN_GRASP --force
+pbl save-pose PEN_LIFT --force
+pbl save-pose CUP_TARGET --force
+pbl save-pose PEN_RELEASE --force
+pbl save-pose PEN_RETREAT --force</code></pre>
+        <p>Then type this in the dashboard agent bar:</p>
+        <pre><code>pick up the pen and place it in the cup</code></pre>
+        <p>CLI version:</p>
+        <pre><code>pbl agent "pick up the pen and place it in the cup"
+pbl agent "pick up the pen and place it in the cup" --execute</code></pre>
+      </section>
+
       <section id="learning">
-        <h2>7. Local Record, Train, Inference</h2>
+        <h2>8. Local Record, Train, Inference</h2>
         <p>This is an episode-based recording workflow. It does not require Solo CLI. Without timing arguments, recording asks how many episodes and how many seconds per episode.</p>
         <pre><code>pbl robo --record --camera-mode yes --camera-fps 30 --rerun
 pbl robo --train --input recordings/latest --model-out models/latest_policy.json

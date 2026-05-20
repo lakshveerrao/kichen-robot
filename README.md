@@ -159,6 +159,43 @@ Open:
 http://127.0.0.1:8000
 ```
 
+## Automatic Agent Controller
+
+The dashboard includes an Automatic Agent Controller bar. It asks "What should I do for you?", reads the configured camera frames, asks ChatGPT for a bounded action, then runs a safe local robot command.
+
+Start it:
+
+```powershell
+$env:OPENAI_API_KEY="your_api_key_here"
+pbl dashboard --allow-movement
+```
+
+For a pen-to-cup task, first save these calibrated poses:
+
+```powershell
+pbl save-pose PEN_APPROACH --force
+pbl save-pose PEN_GRASP --force
+pbl save-pose PEN_LIFT --force
+pbl save-pose CUP_TARGET --force
+pbl save-pose PEN_RELEASE --force
+pbl save-pose PEN_RETREAT --force
+```
+
+Then type this in the dashboard agent bar:
+
+```text
+pick up the pen and place it in the cup
+```
+
+CLI version:
+
+```powershell
+pbl agent "pick up the pen and place it in the cup"
+pbl agent "pick up the pen and place it in the cup" --execute
+```
+
+Do not put API keys in files or Git. If a key was pasted into chat or terminal history, rotate it.
+
 ## ChatGPT Robot Brain
 
 Set an OpenAI API key in your terminal. Do not put keys in code or commit them.

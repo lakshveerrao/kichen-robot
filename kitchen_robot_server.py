@@ -234,6 +234,29 @@ def make_command(payload: dict[str, Any], allow_movement: bool) -> list[str]:
     return command
 
 
+def make_agent_command(payload: dict[str, Any], allow_movement: bool) -> list[str]:
+    request = str(payload.get("request", "")).strip()
+    if not request:
+        raise RuntimeError("Enter a request for the automatic agent.")
+    execute = bool(payload.get("execute", False))
+    if execute and not allow_movement:
+        raise RuntimeError("Server was started without --allow-movement, so automatic movement is blocked.")
+    if execute:
+        require_cached_camera_frames()
+
+    python_exe = PROJECT_PYTHON if PROJECT_PYTHON.exists() else Path(sys.executable)
+    command = [str(python_exe), "-u", "automatic_agent_controller.py", request]
+    if execute:
+        command.append("--execute")
+    else:
+        command.append("--dry-run-command")
+    if payload.get("speed_scale") not in (None, ""):
+        command.extend(["--speed-scale", str(payload["speed_scale"])])
+    if payload.get("pause") not in (None, ""):
+        command.extend(["--pause", str(payload["pause"])])
+    return command
+
+
 def require_cached_camera_frames() -> None:
     config = load_config()
     indices = [int(index) for index in config.get("camera_indices", [1, 2])]
@@ -268,6 +291,7 @@ def page_html(allow_movement: bool) -> str:
       --danger: #b42318;
       --panel: #ffffff;
       --warm: #d97706;
+      --blue: #2563eb;
     }}
     * {{ box-sizing: border-box; }}
     body {{
@@ -385,6 +409,7 @@ def page_html(allow_movement: bool) -> str:
     }}
     button:hover {{ background: var(--accent-dark); }}
     button.secondary {{ background: #334155; }}
+    button.agent {{ background: var(--blue); }}
     button.danger {{ background: var(--danger); }}
     button:disabled {{ opacity: 0.55; cursor: not-allowed; }}
     ol {{
@@ -406,10 +431,28 @@ def page_html(allow_movement: bool) -> str:
       white-space: pre-wrap;
     }}
     .wide {{ display: grid; gap: 18px; }}
+    .agent-bar {{
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: end;
+    }}
+    .agent-bar label {{ margin: 0; }}
+    .agent-toggle {{
+      min-width: 128px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }}
+    .agent-toggle input {{ width: 18px; height: 18px; }}
     @media (max-width: 820px) {{
       main {{ grid-template-columns: 1fr; padding: 12px; }}
       header {{ padding: 18px 14px; }}
       .camera-grid {{ grid-template-columns: 1fr; }}
+      .agent-bar {{ grid-template-columns: 1fr; }}
     }}
   </style>
 </head>
@@ -450,8 +493,22 @@ def page_html(allow_movement: bool) -> str:
       </div>
     </section>
     <div class="wide">
-      <section>
-        <h2>Ingredient Timeline</h2>
+    <section>
+      <h2>Automatic Agent Controller</h2>
+      <div class="agent-bar">
+        <label>What should I do for you?
+          <input id="agentRequest" type="text" placeholder="pick up the pen and place it in the cup">
+        </label>
+        <label class="agent-toggle">
+          <input id="agentExecute" type="checkbox">
+          <span>Move robot</span>
+        </label>
+        <button id="agentBtn" class="agent">Ask Agent</button>
+      </div>
+      <p style="margin-top:10px">The agent uses camera frames and ChatGPT, then selects a bounded local robot command. Pen-to-cup requires saved poses: PEN_APPROACH, PEN_GRASP, PEN_LIFT, CUP_TARGET, PEN_RELEASE, PEN_RETREAT.</p>
+    </section>
+    <section>
+      <h2>Ingredient Timeline</h2>
         <ol>
           <li>Optional: pick the ingredient cup, pour it, pick the side stirrer, then move to ready.</li>
           <li>Warm pan, then add oil or ghee, mustard seeds, dals, curry leaves, chilli, ginger, and onion.</li>
@@ -480,6 +537,7 @@ def page_html(allow_movement: bool) -> str:
     const dot = document.getElementById("dot");
     const startBtn = document.getElementById("startBtn");
     const stopBtn = document.getElementById("stopBtn");
+    const agentBtn = document.getElementById("agentBtn");
 
     function payload() {{
       return {{
@@ -517,6 +575,20 @@ def page_html(allow_movement: bool) -> str:
     startBtn.addEventListener("click", async () => {{
       try {{
         await post("/api/run-upma", payload());
+        await refresh();
+      }} catch (err) {{
+        alert(err.message);
+      }}
+    }});
+
+    agentBtn.addEventListener("click", async () => {{
+      try {{
+        await post("/api/agent", {{
+          request: document.getElementById("agentRequest").value,
+          execute: document.getElementById("agentExecute").checked,
+          speed_scale: document.getElementById("speedScale").value || "0.02",
+          pause: document.getElementById("pause").value || "0.4"
+        }});
         await refresh();
       }} catch (err) {{
         alert(err.message);
@@ -572,6 +644,10 @@ class KitchenRobotHandler(BaseHTTPRequestHandler):
             if parsed.path == "/api/run-upma":
                 payload = read_request_json(self)
                 RUN.start(make_command(payload, self.allow_movement))
+                self.send_json({"ok": True})
+            elif parsed.path == "/api/agent":
+                payload = read_request_json(self)
+                RUN.start(make_agent_command(payload, self.allow_movement))
                 self.send_json({"ok": True})
             elif parsed.path == "/api/stop":
                 RUN.stop()
