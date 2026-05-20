@@ -33,6 +33,13 @@ pbl setup --port COM7 --cameras 1 2
 pbl status
 ```
 
+If you have a leader arm on `COM8` for teleoperation:
+
+```cmd
+pbl setup --port COM7 --leader-port COM8 --leader-id 1 --follower-id kitchen_stirrer_follower --cameras 1 2
+pbl teleop
+```
+
 ## Main Run Commands
 
 ```cmd

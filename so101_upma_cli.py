@@ -7,7 +7,6 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Iterable
 
 
 ROOT = Path(__file__).resolve().parent
@@ -48,15 +47,24 @@ def setup_config(args: argparse.Namespace) -> int:
     config = load_config()
     if args.port:
         config["robot_port"] = args.port
+    if args.leader_port:
+        config["leader_port"] = args.leader_port
+    if args.leader_id:
+        config["leader_id"] = args.leader_id
+    if args.follower_id:
+        config["follower_id"] = args.follower_id
     if args.cameras:
         config["camera_indices"] = args.cameras
-    if args.port or args.cameras:
+    if args.port or args.leader_port or args.leader_id or args.follower_id or args.cameras:
         with config_path.open("w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
             f.write("\n")
         print("Updated config.json.")
     print(f"Config file: {config_path}")
     print(f"robot_port: {config.get('robot_port')}")
+    print(f"leader_port: {config.get('leader_port')}")
+    print(f"leader_id: {config.get('leader_id')}")
+    print(f"follower_id: {config.get('follower_id')}")
     print(f"camera_indices: {config.get('camera_indices')}")
     return 0
 
@@ -67,6 +75,9 @@ def status(_: argparse.Namespace) -> int:
     print(f"Project: {ROOT}")
     print(f"Python: {python_exe()}")
     print(f"robot_port: {config.get('robot_port', 'missing')}")
+    print(f"leader_port: {config.get('leader_port', 'missing')}")
+    print(f"leader_id: {config.get('leader_id', 'missing')}")
+    print(f"follower_id: {config.get('follower_id', 'missing')}")
     print(f"camera_indices: {config.get('camera_indices', 'missing')}")
     print(f"OPENAI_API_KEY set: {bool(os.environ.get('OPENAI_API_KEY'))}")
     return run([python_exe(), "connect_test.py"])
@@ -87,13 +98,19 @@ def calibrate(args: argparse.Namespace) -> int:
 
 
 def teleop(args: argparse.Namespace) -> int:
-    solo = shutil.which("solo")
-    if solo is None:
-        print("The 'solo' command was not found. Install solo-cli first, then retry.")
-        return 1
-    command = [solo, "robo", "--teleop"]
+    command = [python_exe(), "local_teleop.py"]
     if args.yes:
-        command.append("-y")
+        command.append("--yes")
+    if getattr(args, "leader_port", None):
+        command.extend(["--leader-port", args.leader_port])
+    if getattr(args, "follower_port", None):
+        command.extend(["--follower-port", args.follower_port])
+    if getattr(args, "leader_id", None):
+        command.extend(["--leader-id", args.leader_id])
+    if getattr(args, "follower_id", None):
+        command.extend(["--follower-id", args.follower_id])
+    if getattr(args, "fps", None):
+        command.extend(["--fps", str(args.fps)])
     return run(command)
 
 
@@ -293,42 +310,26 @@ def push_hf(args: argparse.Namespace) -> int:
     return 0
 
 
-def solo_command(extra: Iterable[str]) -> int:
-    solo = shutil.which("solo")
-    if solo is None:
-        print("The 'solo' command was not found. Install solo-cli first, then retry.")
-        print("Example: uv pip install -e path\\to\\solo-cli")
-        return 1
-    return run([solo, *extra])
-
-
 def robo(args: argparse.Namespace) -> int:
     if args.calibrate:
         if args.calibrate == "follower":
             return calibrate(args)
-        return solo_command(["robo", "--calibrate", args.calibrate])
+        print("Local all/leader calibration is not implemented yet. Use LeRobot's installed calibration command directly.")
+        print("Follower calibration works with: pbl robo --calibrate follower --port COM7")
+        return 1
     if args.teleop:
         return teleop(args)
     if args.record:
-        command = ["robo", "--record"]
-        if args.yes:
-            command.append("--yes")
-        return solo_command(command)
+        print("Local recording is not implemented yet. This PBL CLI no longer depends on Solo.")
+        return 1
     if args.train:
-        command = ["robo", "--train"]
-        if args.yes:
-            command.append("--yes")
-        return solo_command(command)
+        print("Local training is not implemented yet. This PBL CLI no longer depends on Solo.")
+        return 1
     if args.inference:
-        command = ["robo", "--inference"]
-        if args.yes:
-            command.append("--yes")
-        return solo_command(command)
+        print("Local inference is not implemented yet. This PBL CLI no longer depends on Solo.")
+        return 1
     if args.replay:
-        command = ["robo", "--replay"]
-        if args.yes:
-            command.append("--yes")
-        return solo_command(command)
+        return run([python_exe(), "replay_sequence.py", "--yes"])
     print("Choose one robo action: --calibrate, --teleop, --record, --train, --inference, or --replay.")
     return 1
 
@@ -339,6 +340,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("setup", help="Create/update config.json.")
     p.add_argument("--port", default=None, help="Robot port, for example COM7.")
+    p.add_argument("--leader-port", default=None, help="Leader arm port, for example COM8.")
+    p.add_argument("--leader-id", default=None)
+    p.add_argument("--follower-id", default=None)
     p.add_argument("--cameras", nargs="*", type=int, default=None)
     p.set_defaults(func=setup_config)
 
@@ -350,8 +354,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--robot-id", default=None)
     p.set_defaults(func=calibrate)
 
-    p = sub.add_parser("teleop", help="Run Solo teleoperation if solo-cli is installed.")
+    p = sub.add_parser("teleop", help="Run local leader-to-follower teleoperation without Solo.")
     p.add_argument("-y", "--yes", action="store_true")
+    p.add_argument("--leader-port", default=None)
+    p.add_argument("--follower-port", default=None)
+    p.add_argument("--leader-id", default=None)
+    p.add_argument("--follower-id", default=None)
+    p.add_argument("--fps", type=float, default=60.0)
     p.set_defaults(func=teleop)
 
     p = sub.add_parser("robo", help="Solo-style robotics operations.")
@@ -364,6 +373,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("-y", "--yes", action="store_true")
     p.add_argument("--port", default=None, help="Follower port for --calibrate follower.")
     p.add_argument("--robot-id", default=None, help="Follower id for --calibrate follower.")
+    p.add_argument("--leader-port", default=None)
+    p.add_argument("--follower-port", default=None)
+    p.add_argument("--leader-id", default=None)
+    p.add_argument("--follower-id", default=None)
+    p.add_argument("--fps", type=float, default=60.0)
     p.set_defaults(func=robo)
 
     p = sub.add_parser("save-pose", help="Save the current robot pose.")

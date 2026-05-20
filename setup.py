@@ -11,6 +11,7 @@ setup(
         "so101_upma_cli",
         "robot_api",
         "connect_test",
+        "local_teleop",
         "save_position",
         "upma_mode",
         "stir_motion",

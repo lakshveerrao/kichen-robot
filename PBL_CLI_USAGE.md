@@ -2,7 +2,7 @@
 
 This project installs a terminal command named `pbl`.
 
-It works like a small Solo-style robot CLI for this SO-101 kitchen robot project:
+It works like a small robot CLI for this SO-101 kitchen robot project. It does not require Solo CLI:
 
 - setup
 - status
@@ -60,6 +60,12 @@ No commas for cameras. Use spaces:
 pbl setup --port COM7 --cameras 1 2
 ```
 
+If you have a leader arm on `COM8` for teleoperation:
+
+```cmd
+pbl setup --port COM7 --leader-port COM8 --leader-id 1 --follower-id kitchen_stirrer_follower --cameras 1 2
+```
+
 Check robot connection:
 
 ```cmd
@@ -80,24 +86,20 @@ Calibrate follower only:
 pbl calibrate --port COM7
 ```
 
-Solo-style full calibration, if Solo CLI is installed:
-
-```cmd
-pbl robo --calibrate all
-```
+Follower calibration does not require Solo CLI. Full leader+follower calibration is not wrapped yet; use the installed LeRobot calibration tool directly if you need to recalibrate the leader.
 
 ## 5. Teleoperation
 
-If Solo CLI is installed:
+Local teleoperation does not require Solo CLI:
 
 ```cmd
 pbl teleop
 ```
 
-or:
+With explicit ports:
 
 ```cmd
-pbl robo --teleop
+pbl teleop --leader-port COM8 --follower-port COM7 --leader-id 1 --follower-id kitchen_stirrer_follower
 ```
 
 Use teleop to move the robot to each pose, then save the pose.
@@ -250,16 +252,15 @@ Upload dataset/project folder:
 pbl push-hf username/my-upma-dataset --repo-type dataset --folder .
 ```
 
-## 13. Solo Pass-Through Commands
+## 13. Recording, Training, Inference
 
-These require Solo CLI installed:
+This PBL CLI does not depend on Solo CLI. Local recording, training, and inference wrappers are not implemented yet.
 
 ```cmd
-pbl robo --record
-pbl robo --train
-pbl robo --inference
 pbl robo --replay
 ```
+
+`pbl robo --replay` uses this project's local `replay_sequence.py`.
 
 ## 14. Stop
 

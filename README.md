@@ -1,6 +1,8 @@
 # PBL SO-101 Kitchen Robot
 
-Windows-first SO-101 LeRobot project for calibrated stirring, ingredient cup pickup, spoon/stirrer pickup, tight gripper control, localhost dashboard control, Hugging Face upload/download, Solo-style robot commands, and a bounded ChatGPT robot brain.
+Windows-first SO-101 LeRobot project for calibrated stirring, ingredient cup pickup, spoon/stirrer pickup, tight gripper control, localhost dashboard control, Hugging Face upload/download, local teleoperation, and a bounded ChatGPT robot brain.
+
+This project does not require Solo CLI. Teleoperation is implemented locally with LeRobot leader/follower APIs.
 
 The robot moves only through calibrated poses or validated small bounded moves. Keep one hand near the robot power switch during every real movement command.
 
@@ -34,6 +36,7 @@ pbl --help
 
 ```cmd
 pbl setup --port COM7 --cameras 1 2
+pbl setup --port COM7 --leader-port COM8 --cameras 1 2
 pbl status
 ```
 
@@ -49,7 +52,7 @@ Clear Git download guide:
 notepad GIT_DOWNLOAD_GUIDE.md
 ```
 
-Detailed Solo-style terminal flow:
+Detailed PBL terminal flow:
 
 ```cmd
 notepad PBL_CLI_USAGE.md
