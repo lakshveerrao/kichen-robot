@@ -18,7 +18,8 @@ CONFIG_PATH = ROOT / "config.json"
 
 ALLOWED_ACTIONS = {
     "plan_only",
-    "pick_pen_place_cup",
+    "visual_servo_task",
+    "pick_pen_place_cup_saved_poses",
     "smart_cup_stick_stir",
     "full_upma_with_ingredients",
     "ingredients_only",
@@ -55,6 +56,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--camera-indices", nargs="*", type=int, default=None)
     parser.add_argument("--speed-scale", type=float, default=0.02)
     parser.add_argument("--pause", type=float, default=0.4)
+    parser.add_argument("--steps", type=int, default=12)
+    parser.add_argument("--use-saved-poses", action="store_true", help="Use saved PEN_* poses instead of camera-guided micro-moves.")
     parser.add_argument("--dry-run-command", action="store_true", help="Validate selected pose commands without movement.")
     return parser.parse_args()
 
@@ -108,7 +111,7 @@ def ask_agent(client: OpenAI, args: argparse.Namespace, request: str, camera_ima
         "You are a bounded automatic controller for a LeRobot SO-101 arm. "
         "Use camera images to understand the scene, but choose only one action from the allowed list. "
         "Never invent raw joint angles. Never claim the robot can do arbitrary manipulation without calibrated poses. "
-        "For 'pick up the pen and place in the cup', choose pick_pen_place_cup only if the intent matches. "
+        "For 'pick up the pen and place in the cup', choose visual_servo_task unless the caller explicitly requires saved poses. "
         "If the task is unclear, unsafe, outside the listed actions, or needs missing calibration, choose plan_only or stop. "
         "Return only JSON with keys: action, reason, needed_poses, safety_note."
     )
@@ -119,6 +122,7 @@ def ask_agent(client: OpenAI, args: argparse.Namespace, request: str, camera_ima
                 {
                     "user_request": request,
                     "allowed_actions": sorted(ALLOWED_ACTIONS),
+                    "prefer_without_saved_poses": not args.use_saved_poses,
                     "pen_to_cup_required_poses": positions_status(PEN_TO_CUP_SEQUENCE),
                     "available_camera_count": len(camera_images),
                     "rule": "Use only safe project commands. Real movement is executed by local scripts, not by raw model output.",
@@ -139,6 +143,10 @@ def ask_agent(client: OpenAI, args: argparse.Namespace, request: str, camera_ima
     action = str(decision.get("action", "")).strip()
     if action not in ALLOWED_ACTIONS:
         action = "plan_only"
+    if action == "pick_pen_place_cup_saved_poses" and not args.use_saved_poses:
+        action = "visual_servo_task"
+    if action == "visual_servo_task" and args.use_saved_poses:
+        action = "pick_pen_place_cup_saved_poses"
     return {
         "action": action,
         "reason": str(decision.get("reason", "")),
@@ -153,7 +161,20 @@ def command_for(action: str, args: argparse.Namespace) -> list[str] | None:
     pause = str(args.pause)
     if action in {"plan_only", "stop"}:
         return None
-    if action == "pick_pen_place_cup":
+    if action == "visual_servo_task":
+        return [
+            python_exe,
+            "visual_agent_runner.py",
+            request_text_from_args(args),
+            "--steps",
+            str(args.steps),
+            "--speed-scale",
+            speed,
+            "--pause",
+            pause,
+            "--yes",
+        ]
+    if action == "pick_pen_place_cup_saved_poses":
         command = [
             python_exe,
             "generic_pose_action.py",
@@ -183,9 +204,15 @@ def command_for(action: str, args: argparse.Namespace) -> list[str] | None:
     return None
 
 
+def request_text_from_args(args: argparse.Namespace) -> str:
+    value = getattr(args, "_request_text", "")
+    return value if value else "perform the requested task"
+
+
 def main() -> int:
     args = parse_args()
     request = " ".join(args.request).strip() or input("What should I do for you? ").strip()
+    args._request_text = request
     if not request:
         print("No request provided.")
         return 1

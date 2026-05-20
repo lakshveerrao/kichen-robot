@@ -267,21 +267,20 @@ pbl ingredients --action all</code></pre>
 
       <section id="agent">
         <h2>7. Automatic Agent Controller</h2>
-        <p>The dashboard includes an Automatic Agent Controller bar. It uses configured camera frames and ChatGPT, then selects one bounded local robot command.</p>
+        <p>The terminal agent uses configured camera frames and ChatGPT, then runs bounded local robot micro-moves from the current pose.</p>
         <pre><code>set OPENAI_API_KEY=your_api_key_here
-pbl dashboard --allow-movement</code></pre>
-        <p>For pen-to-cup, save calibrated poses first:</p>
+pbl agent</code></pre>
+        <p>Pen-to-cup without saved poses:</p>
+        <pre><code>pbl agent "pick up the pen and place it in the cup" --execute --steps 12</code></pre>
+        <p>The no-saved-poses path only uses small allowed moves: pan, lift, wrist, open gripper, close gripper, hold, done, or stop.</p>
+        <p>Optional saved-pose mode:</p>
         <pre><code>pbl save-pose PEN_APPROACH --force
 pbl save-pose PEN_GRASP --force
 pbl save-pose PEN_LIFT --force
 pbl save-pose CUP_TARGET --force
 pbl save-pose PEN_RELEASE --force
-pbl save-pose PEN_RETREAT --force</code></pre>
-        <p>Then type this in the dashboard agent bar:</p>
-        <pre><code>pick up the pen and place it in the cup</code></pre>
-        <p>CLI version:</p>
-        <pre><code>pbl agent "pick up the pen and place it in the cup"
-pbl agent "pick up the pen and place it in the cup" --execute</code></pre>
+pbl save-pose PEN_RETREAT --force
+pbl agent "pick up the pen and place it in the cup" --execute --use-saved-poses</code></pre>
       </section>
 
       <section id="learning">

@@ -18,6 +18,7 @@ setup(
         "local_inference",
         "camera_runtime",
         "automatic_agent_controller",
+        "visual_agent_runner",
         "generic_pose_action",
         "save_position",
         "upma_mode",

@@ -170,7 +170,34 @@ $env:OPENAI_API_KEY="your_api_key_here"
 pbl dashboard --allow-movement
 ```
 
-For a pen-to-cup task, first save these calibrated poses:
+Terminal-only agent:
+
+```powershell
+$env:OPENAI_API_KEY="your_api_key_here"
+pbl agent
+```
+
+It asks:
+
+```text
+What should I do for you?
+```
+
+For example:
+
+```text
+pick up the pen and place it in the cup
+```
+
+Run it automatically with cameras and bounded micro-moves from the current robot pose:
+
+```powershell
+pbl agent "pick up the pen and place it in the cup" --execute --steps 12
+```
+
+This does not require saving poses. It uses small camera-guided moves only: pan, lift, wrist, open gripper, close gripper, hold, done, or stop.
+
+Optional saved-pose mode:
 
 ```powershell
 pbl save-pose PEN_APPROACH --force
@@ -179,19 +206,7 @@ pbl save-pose PEN_LIFT --force
 pbl save-pose CUP_TARGET --force
 pbl save-pose PEN_RELEASE --force
 pbl save-pose PEN_RETREAT --force
-```
-
-Then type this in the dashboard agent bar:
-
-```text
-pick up the pen and place it in the cup
-```
-
-CLI version:
-
-```powershell
-pbl agent "pick up the pen and place it in the cup"
-pbl agent "pick up the pen and place it in the cup" --execute
+pbl agent "pick up the pen and place it in the cup" --execute --use-saved-poses
 ```
 
 Do not put API keys in files or Git. If a key was pasted into chat or terminal history, rotate it.

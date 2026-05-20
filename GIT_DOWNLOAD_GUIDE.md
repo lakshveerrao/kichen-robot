@@ -88,22 +88,19 @@ set OPENAI_API_KEY=your_api_key_here
 pbl dashboard --allow-movement
 ```
 
-For "pick up the pen and place it in the cup", save these poses first:
+Terminal-only agent:
 
 ```cmd
-pbl save-pose PEN_APPROACH --force
-pbl save-pose PEN_GRASP --force
-pbl save-pose PEN_LIFT --force
-pbl save-pose CUP_TARGET --force
-pbl save-pose PEN_RELEASE --force
-pbl save-pose PEN_RETREAT --force
+pbl agent
 ```
 
-Then use the dashboard agent bar, or run:
+Pen-to-cup without saved poses:
 
 ```cmd
-pbl agent "pick up the pen and place it in the cup" --execute
+pbl agent "pick up the pen and place it in the cup" --execute --steps 12
 ```
+
+This uses camera-guided bounded micro-moves from the current robot pose.
 
 ## Documentation Site
 

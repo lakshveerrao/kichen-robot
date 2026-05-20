@@ -325,13 +325,21 @@ Start the dashboard:
 pbl dashboard --allow-movement
 ```
 
-Use the Automatic Agent Controller bar and type:
+Terminal-only agent:
 
-```text
-pick up the pen and place it in the cup
+```cmd
+pbl agent
 ```
 
-For that task, save these poses first:
+It asks what it should do. To run pen-to-cup without saved poses, use camera-guided bounded micro-moves:
+
+```cmd
+pbl agent "pick up the pen and place it in the cup" --execute --steps 12
+```
+
+This does not require saving poses. The robot only uses small bounded moves from its current position: pan, lift, wrist, open gripper, close gripper, hold, done, or stop.
+
+Optional saved-pose mode:
 
 ```cmd
 pbl save-pose PEN_APPROACH --force
@@ -340,13 +348,7 @@ pbl save-pose PEN_LIFT --force
 pbl save-pose CUP_TARGET --force
 pbl save-pose PEN_RELEASE --force
 pbl save-pose PEN_RETREAT --force
-```
-
-CLI version:
-
-```cmd
-pbl agent "pick up the pen and place it in the cup"
-pbl agent "pick up the pen and place it in the cup" --execute
+pbl agent "pick up the pen and place it in the cup" --execute --use-saved-poses
 ```
 
 The agent uses cameras and ChatGPT, but it only runs bounded project actions. It does not invent raw joint angles.
