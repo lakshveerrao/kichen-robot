@@ -313,27 +313,49 @@ pbl push-hf username/my-upma-dataset --repo-type dataset --folder .
 
 ## 14. Record, Train, Inference, Replay
 
-This PBL CLI does not depend on Solo CLI. It includes a simple local pose-sequence workflow:
+This PBL CLI does not depend on Solo CLI. Recording is episode-based, similar to LeRobot data collection demos. If you do not pass `--episodes` or `--seconds`, it asks you:
 
 ```cmd
-pbl robo --record --seconds 20 --fps 10
-pbl robo --train --input recordings/latest/observations.jsonl --model-out models/latest_policy.json
+pbl robo --record --camera-mode yes --camera-fps 30 --rerun
+```
+
+It asks:
+
+- how many episodes you want to record
+- how many seconds each episode should be
+
+Non-interactive recording:
+
+```cmd
+pbl robo --record --episodes 5 --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun -y
+```
+
+Record and push the dataset to Hugging Face:
+
+```cmd
+pbl robo --record --episodes 5 --seconds 20 --camera-mode yes --rerun --push-hf --repo-id YOUR_USERNAME/my-so101-recording
+```
+
+Train/refine means building a replay policy from the recorded episodes. Replay/inference means playing that policy back on the robot:
+
+```cmd
+pbl robo --train --input recordings/latest --model-out models/latest_policy.json
 pbl robo --inference --policy models/latest_policy.json --speed-scale 0.02
 pbl robo --replay
 ```
 
-`record` saves follower joint poses to JSONL. `train` builds a replay policy JSON from the recording. `inference` replays that policy safely through `move_to_position`. `replay` uses this project's local `replay_sequence.py`.
+`record` saves `recordings/latest/episode_000000/observations.jsonl`, camera snapshots, and `manifest.json`. `train` builds a replay policy JSON from those episodes. `inference` plays that policy safely through `move_to_position`. `replay` uses this project's local saved-pose replay.
 
 Record with camera metadata and latest camera images:
 
 ```cmd
-pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30
+pbl robo --record --episodes 1 --seconds 20 --fps 60 --camera-mode yes --camera-fps 30
 ```
 
 Record with live Rerun camera/data logging:
 
 ```cmd
-pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun
+pbl robo --record --episodes 1 --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun
 ```
 
 ## 15. Stop

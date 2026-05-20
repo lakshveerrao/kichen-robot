@@ -48,12 +48,14 @@ pbl calibrate --device follower --follower-port COM7
 Local record/train/inference:
 
 ```cmd
-pbl robo --record --seconds 20 --fps 10
-pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30
-pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun
+pbl robo --record --camera-mode yes --camera-fps 30 --rerun
+pbl robo --record --episodes 5 --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun -y
+pbl robo --record --episodes 5 --seconds 20 --camera-mode yes --rerun --push-hf --repo-id YOUR_USERNAME/my-so101-recording
 pbl robo --train
 pbl robo --inference --speed-scale 0.02
 ```
+
+Without `--episodes` or `--seconds`, the recorder asks how many episodes and how many seconds per episode.
 
 If you have a leader arm on `COM8` for teleoperation:
 

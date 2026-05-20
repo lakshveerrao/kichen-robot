@@ -79,14 +79,26 @@ pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fp
 Record with camera metadata/images:
 
 ```cmd
-pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30
+pbl robo --record --camera-mode yes --camera-fps 30 --rerun
 ```
 
-View camera frames and robot data in Rerun:
+It asks how many episodes and how many seconds per episode. To skip prompts:
 
 ```cmd
-pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30 --rerun
-pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun
+pbl robo --record --episodes 5 --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun -y
+```
+
+Push the recording dataset to Hugging Face:
+
+```cmd
+pbl robo --record --episodes 5 --seconds 20 --camera-mode yes --rerun --push-hf --repo-id YOUR_USERNAME/my-so101-recording
+```
+
+Train/refine a replay policy from the recorded episodes, then play it back:
+
+```cmd
+pbl robo --train --input recordings/latest --model-out models/latest_policy.json
+pbl robo --inference --policy models/latest_policy.json --speed-scale 0.02
 ```
 
 Rerun viewer: https://rerun.io/

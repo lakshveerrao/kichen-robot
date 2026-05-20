@@ -355,21 +355,50 @@ def robo(args: argparse.Namespace) -> int:
     if args.teleop:
         return teleop(args)
     if args.record:
-        return run([
+        command = [
             python_exe(), "local_record.py",
+            "--dataset-dir", args.dataset_dir,
+            "--task", args.task,
             "--out", args.out,
-            "--seconds", str(args.seconds),
             "--fps", str(args.fps),
+            "--control-mode", args.control_mode,
             "--camera-mode", args.camera_mode,
             "--camera-fps", str(args.camera_fps),
             "--camera-width", str(args.camera_width),
             "--camera-height", str(args.camera_height),
-            "--camera-save-dir", args.camera_save_dir,
-            "--yes",
-        ] + (["--rerun"] if args.rerun else [])
-          + (["--rerun-spawn"] if args.rerun_spawn else [])
-          + (["--no-rerun-spawn"] if args.no_rerun_spawn else [])
-          + ["--rerun-every", str(args.rerun_every)])
+            "--rerun-every", str(args.rerun_every),
+        ]
+        if args.seconds is not None:
+            command.extend(["--seconds", str(args.seconds)])
+        if args.episodes is not None:
+            command.extend(["--episodes", str(args.episodes)])
+        if args.camera_save_dir:
+            command.extend(["--camera-save-dir", args.camera_save_dir])
+        if args.leader_port:
+            command.extend(["--leader-port", args.leader_port])
+        if args.follower_port:
+            command.extend(["--follower-port", args.follower_port])
+        if args.leader_id:
+            command.extend(["--leader-id", args.leader_id])
+        if args.follower_id:
+            command.extend(["--follower-id", args.follower_id])
+        if args.yes:
+            command.append("--yes")
+        if args.rerun:
+            command.append("--rerun")
+        if args.rerun_spawn:
+            command.append("--rerun-spawn")
+        if args.no_rerun_spawn:
+            command.append("--no-rerun-spawn")
+        if args.push_hf:
+            command.append("--push-hf")
+        if args.repo_id:
+            command.extend(["--repo-id", args.repo_id])
+        if args.repo_type:
+            command.extend(["--repo-type", args.repo_type])
+        if args.private:
+            command.append("--private")
+        return run(command)
     if args.train:
         return run([python_exe(), "local_train.py", "--input", args.input, "--out", args.model_out, "--stride", str(args.stride)])
     if args.inference:
@@ -453,19 +482,27 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--camera-fps", type=float, default=30.0)
     p.add_argument("--camera-width", type=int, default=640)
     p.add_argument("--camera-height", type=int, default=480)
-    p.add_argument("--camera-save-dir", default="recordings/latest/cameras")
+    p.add_argument("--camera-save-dir", default=None)
     p.add_argument("--rerun", action="store_true", help="Stream camera frames and robot data to Rerun.")
     p.add_argument("--rerun-spawn", action="store_true", help="Compatibility option. --rerun opens the viewer by default.")
     p.add_argument("--no-rerun-spawn", action="store_true", help="Log to Rerun without opening the viewer.")
     p.add_argument("--rerun-every", type=int, default=5)
-    p.add_argument("--seconds", type=float, default=20.0)
+    p.add_argument("--episodes", type=int, default=None, help="Number of recording episodes. If omitted, pbl asks.")
+    p.add_argument("--seconds", type=float, default=None, help="Seconds per episode. If omitted, pbl asks.")
+    p.add_argument("--dataset-dir", default="recordings/latest")
+    p.add_argument("--task", default="so101_kitchen_recording")
+    p.add_argument("--control-mode", choices=["auto", "teleop", "observe"], default="auto")
     p.add_argument("--out", default="recordings/latest/observations.jsonl")
-    p.add_argument("--input", default="recordings/latest/observations.jsonl")
+    p.add_argument("--input", default="recordings/latest")
     p.add_argument("--model-out", default="models/latest_policy.json")
     p.add_argument("--policy", default="models/latest_policy.json")
     p.add_argument("--stride", type=int, default=1)
     p.add_argument("--speed-scale", type=float, default=0.02)
     p.add_argument("--pause", type=float, default=0.05)
+    p.add_argument("--push-hf", action="store_true", help="Upload recording dataset to Hugging Face after --record.")
+    p.add_argument("--repo-id", default=None, help="Hugging Face repo id for --push-hf.")
+    p.add_argument("--repo-type", choices=["dataset", "model", "space"], default="dataset")
+    p.add_argument("--private", action="store_true")
     p.set_defaults(func=robo)
 
     p = sub.add_parser("save-pose", help="Save the current robot pose.")
