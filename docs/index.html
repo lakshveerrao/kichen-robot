@@ -197,6 +197,9 @@ pbl robo --calibrate all --leader-port COM8 --follower-port COM7</code></pre>
         <pre><code>pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode no
 pbl teleop --leader-port COM8 --follower-port COM7
 pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30</code></pre>
+        <p>Use Rerun for live camera view and robot data:</p>
+        <pre><code>pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30 --rerun --rerun-spawn</code></pre>
+        <p>Rerun viewer: <a href="https://rerun.io/">https://rerun.io/</a></p>
         <p>Stop teleop with <code>Ctrl+C</code>.</p>
       </section>
 
@@ -270,6 +273,8 @@ pbl robo --inference --policy models/latest_policy.json --speed-scale 0.02
 pbl robo --replay</code></pre>
         <p>Record with camera metadata and latest camera images:</p>
         <pre><code>pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30</code></pre>
+        <p>Record while streaming camera frames and robot state to Rerun:</p>
+        <pre><code>pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun --rerun-spawn</code></pre>
       </section>
 
       <section id="chatgpt">

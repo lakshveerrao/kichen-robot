@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from camera_runtime import BackgroundCameraSet, choose_cameras
+from camera_runtime import BackgroundCameraSet, choose_cameras, log_rerun_text, start_rerun
 
 
 CONFIG_PATH = Path("config.json")
@@ -29,6 +29,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--camera-width", type=int, default=640)
     parser.add_argument("--camera-height", type=int, default=480)
     parser.add_argument("--camera-save-dir", default=None)
+    parser.add_argument("--rerun", action="store_true", help="Stream camera frames and robot data to Rerun.")
+    parser.add_argument("--rerun-spawn", action="store_true", help="Open the Rerun viewer when --rerun is used.")
+    parser.add_argument("--rerun-every", type=int, default=5, help="Log every N camera/control frames to Rerun.")
     parser.add_argument("--max-relative-target", type=float, default=5.0)
     parser.add_argument("--yes", action="store_true")
     return parser.parse_args()
@@ -71,6 +74,7 @@ def main() -> int:
     leader = None
     follower = None
     cameras = None
+    rr = None
     try:
         config = load_json(CONFIG_PATH)
         leader_port = args.leader_port or config.get("leader_port") or "COM8"
@@ -88,12 +92,16 @@ def main() -> int:
         if not args.yes:
             input("Press Enter to connect teleop, or Ctrl+C to cancel.")
 
+        if args.rerun:
+            rr = start_rerun("pbl_so101_teleop", spawn=args.rerun_spawn)
         cameras = BackgroundCameraSet(
             camera_indices,
             args.camera_width,
             args.camera_height,
             args.camera_fps,
             Path(args.camera_save_dir) if args.camera_save_dir else None,
+            rerun=rr,
+            rerun_every=args.rerun_every,
         )
         cameras.start()
         if camera_indices:
@@ -117,14 +125,19 @@ def main() -> int:
 
         interval = 1.0 / args.fps
         next_print = time.time()
+        frame_count = 0
         while True:
             started = time.perf_counter()
             action = leader.get_action()
             follower.send_action(action)
+            frame_count += 1
             now = time.time()
+            if rr is not None and frame_count % max(1, args.rerun_every) == 0:
+                log_rerun_text(rr, "robot/action", action)
             if now >= next_print:
                 camera_state = cameras.snapshot() if cameras is not None else {}
                 print(f"Teleop running. Press Ctrl+C to stop. cameras={camera_state}")
+                log_rerun_text(rr, "robot/status", {"mode": "teleop", "fps": args.fps, "cameras": camera_state})
                 next_print = now + 5.0
             elapsed = time.perf_counter() - started
             sleep_time = interval - elapsed

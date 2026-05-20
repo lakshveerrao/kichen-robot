@@ -50,6 +50,7 @@ Local record/train/inference:
 ```cmd
 pbl robo --record --seconds 20 --fps 10
 pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30
+pbl robo --record --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun --rerun-spawn
 pbl robo --train
 pbl robo --inference --speed-scale 0.02
 ```
@@ -62,7 +63,10 @@ pbl teleop
 pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode no
 pbl teleop --leader-port COM8 --follower-port COM7
 pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30
+pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30 --rerun --rerun-spawn
 ```
+
+Rerun camera/data viewer: https://rerun.io/
 
 ## Main Run Commands
 

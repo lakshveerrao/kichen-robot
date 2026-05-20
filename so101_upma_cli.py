@@ -140,6 +140,12 @@ def teleop(args: argparse.Namespace) -> int:
         command.extend(["--camera-height", str(args.camera_height)])
     if getattr(args, "camera_save_dir", None):
         command.extend(["--camera-save-dir", args.camera_save_dir])
+    if getattr(args, "rerun", False):
+        command.append("--rerun")
+    if getattr(args, "rerun_spawn", False):
+        command.append("--rerun-spawn")
+    if getattr(args, "rerun_every", None):
+        command.extend(["--rerun-every", str(args.rerun_every)])
     return run(command)
 
 
@@ -358,7 +364,9 @@ def robo(args: argparse.Namespace) -> int:
             "--camera-height", str(args.camera_height),
             "--camera-save-dir", args.camera_save_dir,
             "--yes",
-        ])
+        ] + (["--rerun"] if args.rerun else [])
+          + (["--rerun-spawn"] if args.rerun_spawn else [])
+          + ["--rerun-every", str(args.rerun_every)])
     if args.train:
         return run([python_exe(), "local_train.py", "--input", args.input, "--out", args.model_out, "--stride", str(args.stride)])
     if args.inference:
@@ -416,6 +424,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--camera-width", type=int, default=640)
     p.add_argument("--camera-height", type=int, default=480)
     p.add_argument("--camera-save-dir", default=None)
+    p.add_argument("--rerun", action="store_true", help="Stream camera frames and robot data to Rerun.")
+    p.add_argument("--rerun-spawn", action="store_true", help="Open the Rerun viewer when --rerun is used.")
+    p.add_argument("--rerun-every", type=int, default=5)
     p.set_defaults(func=teleop)
 
     p = sub.add_parser("robo", help="Local robotics operations.")
@@ -439,6 +450,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--camera-width", type=int, default=640)
     p.add_argument("--camera-height", type=int, default=480)
     p.add_argument("--camera-save-dir", default="recordings/latest/cameras")
+    p.add_argument("--rerun", action="store_true", help="Stream camera frames and robot data to Rerun.")
+    p.add_argument("--rerun-spawn", action="store_true", help="Open the Rerun viewer when --rerun is used.")
+    p.add_argument("--rerun-every", type=int, default=5)
     p.add_argument("--seconds", type=float, default=20.0)
     p.add_argument("--out", default="recordings/latest/observations.jsonl")
     p.add_argument("--input", default="recordings/latest/observations.jsonl")

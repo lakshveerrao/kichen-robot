@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import threading
 import time
 from dataclasses import dataclass
@@ -21,6 +22,28 @@ def import_cv2():
     except ImportError as exc:
         raise RuntimeError("OpenCV is not installed.") from exc
     return cv2
+
+
+def start_rerun(application_id: str = "pbl_so101_robot", spawn: bool = False) -> Any | None:
+    try:
+        import rerun as rr
+    except ImportError:
+        print("Rerun is not installed. Install rerun-sdk or run the project installer again.")
+        return None
+    rr.init(application_id, spawn=spawn)
+    rr.log("status", rr.TextLog(f"{application_id} started"))
+    print(f"Rerun logging enabled. Viewer: https://rerun.io/")
+    return rr
+
+
+def log_rerun_text(rr: Any | None, path: str, payload: Any) -> None:
+    if rr is None:
+        return
+    try:
+        text = payload if isinstance(payload, str) else json.dumps(payload, default=str)
+        rr.log(path, rr.TextLog(text))
+    except Exception as exc:
+        print(f"Warning: Rerun text log failed: {exc}")
 
 
 def discover_cameras(max_index: int = 10, width: int = 640, height: int = 480) -> list[int]:
@@ -79,12 +102,25 @@ def choose_cameras(mode: str, configured: list[int], width: int, height: int) ->
 
 
 class BackgroundCameraSet:
-    def __init__(self, indices: list[int], width: int, height: int, fps: float, save_dir: Path | None = None) -> None:
+    def __init__(
+        self,
+        indices: list[int],
+        width: int,
+        height: int,
+        fps: float,
+        save_dir: Path | None = None,
+        rerun: Any | None = None,
+        rerun_every: int = 5,
+        rerun_path_prefix: str = "cameras",
+    ) -> None:
         self.indices = indices
         self.width = width
         self.height = height
         self.fps = fps
         self.save_dir = save_dir
+        self.rerun = rerun
+        self.rerun_every = max(1, int(rerun_every))
+        self.rerun_path_prefix = rerun_path_prefix.strip("/") or "cameras"
         self.lock = threading.Lock()
         self.frames: dict[int, CameraFrame] = {}
         self.errors: dict[int, str] = {}
@@ -127,6 +163,13 @@ class BackgroundCameraSet:
                     with self.lock:
                         self.frames[index] = CameraFrame(index, time.time(), frame, frames_read)
                         self.errors.pop(index, None)
+                    if self.rerun is not None and frames_read % self.rerun_every == 0:
+                        try:
+                            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                            self.rerun.log(f"{self.rerun_path_prefix}/camera_{index}", self.rerun.Image(rgb))
+                        except Exception as exc:
+                            with self.lock:
+                                self.errors[index] = f"rerun log failed: {exc}"
                     if self.save_dir is not None and frames_read % max(1, int(self.fps)) == 0:
                         cv2.imwrite(str(self.save_dir / f"camera_{index}_latest.jpg"), frame)
                 else:
@@ -155,4 +198,3 @@ class BackgroundCameraSet:
         self.stop_event.set()
         for thread in self.threads:
             thread.join(timeout=1.0)
-

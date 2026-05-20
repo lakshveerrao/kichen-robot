@@ -5,7 +5,7 @@ import json
 import time
 from pathlib import Path
 
-from camera_runtime import BackgroundCameraSet, choose_cameras
+from camera_runtime import BackgroundCameraSet, choose_cameras, log_rerun_text, start_rerun
 from robot_api import connect_robot, disconnect_robot, read_current_position
 
 
@@ -27,6 +27,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--camera-width", type=int, default=640)
     parser.add_argument("--camera-height", type=int, default=480)
     parser.add_argument("--camera-save-dir", default="recordings/latest/cameras")
+    parser.add_argument("--rerun", action="store_true", help="Stream camera frames and robot data to Rerun.")
+    parser.add_argument("--rerun-spawn", action="store_true", help="Open the Rerun viewer when --rerun is used.")
+    parser.add_argument("--rerun-every", type=int, default=5, help="Log every N camera/record frames to Rerun.")
     parser.add_argument("--yes", action="store_true")
     return parser.parse_args()
 
@@ -45,6 +48,7 @@ def main() -> int:
 
     robot = None
     cameras = None
+    rr = None
     try:
         config = load_json(CONFIG_PATH)
         out_path = Path(args.out)
@@ -55,12 +59,16 @@ def main() -> int:
         camera_indices = choose_cameras(args.camera_mode, configured_cameras, args.camera_width, args.camera_height)
         if not args.yes:
             input("Press Enter to connect and record, or Ctrl+C to cancel.")
+        if args.rerun:
+            rr = start_rerun("pbl_so101_record", spawn=args.rerun_spawn)
         cameras = BackgroundCameraSet(
             camera_indices,
             args.camera_width,
             args.camera_height,
             args.camera_fps,
             Path(args.camera_save_dir) if camera_indices else None,
+            rerun=rr,
+            rerun_every=args.rerun_every,
         )
         cameras.start()
         robot = connect_robot(config)
@@ -73,6 +81,9 @@ def main() -> int:
                 position = read_current_position(robot)
                 camera_state = cameras.snapshot() if cameras is not None else {}
                 f.write(json.dumps({"t": timestamp, "position": position, "camera_state": camera_state}) + "\n")
+                if rr is not None and count % max(1, args.rerun_every) == 0:
+                    log_rerun_text(rr, "robot/position", {"t": timestamp, "position": position})
+                    log_rerun_text(rr, "robot/camera_state", camera_state)
                 count += 1
                 time.sleep(interval)
         print(f"Recorded {count} frames.")
