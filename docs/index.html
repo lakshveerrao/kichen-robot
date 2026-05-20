@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PBL SO-101 Kitchen Robot Docs</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #5d6678;
+      --line: #d9e0ea;
+      --accent: #0f766e;
+      --accent-dark: #0a4f4a;
+      --code: #111827;
+      --code-ink: #d7f7ee;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.55;
+    }
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      padding: 34px 20px;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 34px;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 32px 0 12px;
+      font-size: 24px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+    }
+    h3 {
+      margin: 24px 0 8px;
+      font-size: 18px;
+    }
+    p { color: var(--muted); margin: 0 0 12px; }
+    a { color: var(--accent-dark); }
+    main {
+      padding: 22px 20px 60px;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    nav a {
+      color: var(--accent-dark);
+      border: 1px solid var(--line);
+      background: #fdfefe;
+      border-radius: 6px;
+      padding: 7px 10px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      margin: 16px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfcfe;
+    }
+    .card b {
+      display: block;
+      margin-bottom: 5px;
+    }
+    pre {
+      margin: 10px 0 16px;
+      padding: 14px;
+      overflow-x: auto;
+      background: var(--code);
+      color: var(--code-ink);
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    code {
+      font-family: Consolas, Monaco, monospace;
+    }
+    ul {
+      margin-top: 8px;
+      padding-left: 22px;
+    }
+    .warning {
+      border-left: 5px solid #b42318;
+      background: #fff7f6;
+    }
+    .ok {
+      border-left: 5px solid var(--accent);
+      background: #f1fbf8;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>PBL SO-101 Kitchen Robot</h1>
+      <p>Git-downloadable Windows project for SO-101 LeRobot cooking workflows: local teleop, calibrated pose saving, cup pickup, spoon/stick pickup, stirring, dashboard control, ChatGPT brain, and Hugging Face upload/download.</p>
+      <nav>
+        <a href="#install">Install</a>
+        <a href="#configure">Configure</a>
+        <a href="#teleop">Teleop</a>
+        <a href="#poses">Save Poses</a>
+        <a href="#run">Run</a>
+        <a href="#chatgpt">ChatGPT</a>
+        <a href="#huggingface">Hugging Face</a>
+        <a href="#git">Git</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <section class="warning">
+        <h2>Safety</h2>
+        <p>Keep one hand near the robot power switch during every real movement. Run dry-runs before movement. Do not run pose-saving commands in a batch because every pose must be saved after physically moving the robot to that pose.</p>
+      </section>
+
+      <section id="install">
+        <h2>1. Download And Install</h2>
+        <h3>Fresh Windows System</h3>
+        <pre><code>cd C:\Users\PBL
+git clone https://github.com/lakshveerrao/kichen-robot.git so101_kitchen_stirrer_milestone
+cd C:\Users\PBL\so101_kitchen_stirrer_milestone
+py -3.11 -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install uv
+uv pip install -e .
+pbl --help</code></pre>
+        <h3>If The Folder Already Exists</h3>
+        <pre><code>cd C:\Users\PBL\so101_kitchen_stirrer_milestone
+git pull
+.venv\Scripts\activate
+uv pip install -e .
+pbl --help</code></pre>
+      </section>
+
+      <section id="configure">
+        <h2>2. Configure And Check Robot</h2>
+        <pre><code>pbl setup --port COM7 --cameras 1 2
+pbl status
+mode</code></pre>
+        <p>Do not use commas for cameras. Use spaces: <code>--cameras 1 2</code>.</p>
+        <h3>With Leader Arm For Teleop</h3>
+        <pre><code>pbl setup --port COM7 --leader-port COM8 --leader-id 1 --follower-id kitchen_stirrer_follower --cameras 1 2</code></pre>
+      </section>
+
+      <section id="teleop">
+        <h2>3. Teleoperation Without Solo CLI</h2>
+        <p>This project does not require Solo CLI. Teleop uses local LeRobot leader/follower APIs.</p>
+        <pre><code>pbl teleop</code></pre>
+        <p>Explicit ports:</p>
+        <pre><code>pbl teleop --leader-port COM8 --follower-port COM7 --leader-id 1 --follower-id kitchen_stirrer_follower</code></pre>
+        <p>Stop teleop with <code>Ctrl+C</code>.</p>
+      </section>
+
+      <section id="poses">
+        <h2>4. Save Poses</h2>
+        <p>Move the robot to the pose using teleop or by hand, then save only that pose.</p>
+        <h3>Main Poses</h3>
+        <pre><code>pbl save-pose HOME
+pbl save-pose ABOVE_BOWL
+pbl save-pose STIR_DEPTH
+pbl save-pose LIFT
+pbl save-pose PARK
+pbl save-pose STIR_FORWARD
+pbl save-pose STIR_BACK
+pbl save-pose STIR_LEFT
+pbl save-pose STIR_RIGHT
+pbl save-pose UP
+pbl save-pose DOWN
+pbl save-pose LEFT
+pbl save-pose RIGHT</code></pre>
+        <h3>Ingredient Cup Poses</h3>
+        <pre><code>pbl save-pose CUP_APPROACH
+pbl save-pose CUP_GRASP
+pbl save-pose CUP_LIFT
+pbl save-pose CUP_POUR
+pbl save-pose CUP_PLACE
+pbl save-pose CUP_RELEASE</code></pre>
+        <h3>Spoon/Stick Poses</h3>
+        <pre><code>pbl save-pose STIRRER_APPROACH
+pbl save-pose STIRRER_GRASP
+pbl save-pose STIRRER_LIFT
+pbl save-pose STIRRER_READY</code></pre>
+      </section>
+
+      <section id="run">
+        <h2>5. Validate And Run</h2>
+        <div class="grid">
+          <div class="card">
+            <b>No Movement</b>
+            <pre><code>pbl dry-run
+pbl dry-run --ingredients</code></pre>
+          </div>
+          <div class="card">
+            <b>Small Movement Tests</b>
+            <pre><code>pbl stir --motion front-back --cycles 1
+pbl stir --motion left-right --cycles 1
+pbl ingredients --action all</code></pre>
+          </div>
+          <div class="card">
+            <b>Full Run</b>
+            <pre><code>pbl run --ingredients</code></pre>
+          </div>
+          <div class="card">
+            <b>Smart Tight Grip</b>
+            <pre><code>pbl smart --cycles 5 --tight -5 --open 30</code></pre>
+          </div>
+        </div>
+        <h3>Camera Check Override</h3>
+        <pre><code>pbl run --ingredients --skip-camera-check</code></pre>
+        <h3>Dashboard</h3>
+        <pre><code>pbl dashboard --allow-movement</code></pre>
+        <p>Open <code>http://127.0.0.1:8000</code>.</p>
+      </section>
+
+      <section id="chatgpt">
+        <h2>6. ChatGPT Brain</h2>
+        <p>Do not put API keys in code or Git.</p>
+        <h3>Command Prompt</h3>
+        <pre><code>set OPENAI_API_KEY=your_new_api_key_here
+pbl brain "pick the cup, grab the stick tight, and stir slowly"
+pbl brain "pick the cup, grab the stick tight, and stir slowly" --execute</code></pre>
+        <h3>PowerShell</h3>
+        <pre><code>$env:OPENAI_API_KEY="your_new_api_key_here"
+pbl brain "pick the cup, grab the stick tight, and stir slowly"
+pbl brain "pick the cup, grab the stick tight, and stir slowly" --execute</code></pre>
+      </section>
+
+      <section id="huggingface">
+        <h2>7. Hugging Face</h2>
+        <pre><code>pbl login
+pbl whoami
+pbl download lakshveeer/robot --repo-type dataset
+pbl push-hf username/my-upma-dataset --repo-type dataset --folder .</code></pre>
+      </section>
+
+      <section id="git">
+        <h2>8. Git Update And Push</h2>
+        <pre><code>cd C:\Users\PBL\so101_kitchen_stirrer_milestone
+git pull
+git add .
+git commit -m "Update PBL kitchen robot"
+git push</code></pre>
+        <h3>Enable GitHub Pages</h3>
+        <p>On GitHub, open repository settings, go to Pages, choose source <code>Deploy from a branch</code>, branch <code>main</code>, folder <code>/docs</code>, then save.</p>
+        <p>Expected site URL after GitHub builds it:</p>
+        <pre><code>https://lakshveerrao.github.io/kichen-robot/</code></pre>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

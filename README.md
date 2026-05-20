@@ -8,6 +8,12 @@ The robot moves only through calibrated poses or validated small bounded moves. 
 
 ## Quick Download And Install
 
+Documentation site:
+
+```text
+https://lakshveerrao.github.io/kichen-robot/
+```
+
 Clone the repository on a new Windows system:
 
 ```cmd
@@ -50,6 +56,12 @@ Clear Git download guide:
 
 ```cmd
 notepad GIT_DOWNLOAD_GUIDE.md
+```
+
+GitHub Pages site files are in:
+
+```cmd
+docs\index.html
 ```
 
 Detailed PBL terminal flow:

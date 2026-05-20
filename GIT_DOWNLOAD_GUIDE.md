@@ -49,6 +49,26 @@ pbl smart --cycles 5 --tight -5 --open 30
 pbl dashboard --allow-movement
 ```
 
+## Documentation Site
+
+Site source is in:
+
+```cmd
+docs\index.html
+```
+
+Enable GitHub Pages from repository settings:
+
+```text
+Settings -> Pages -> Deploy from a branch -> main -> /docs
+```
+
+Expected URL:
+
+```text
+https://lakshveerrao.github.io/kichen-robot/
+```
+
 ## Push Changes Back To GitHub
 
 ```cmd
