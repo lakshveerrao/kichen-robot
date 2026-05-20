@@ -24,7 +24,7 @@ If you are already inside the project folder, do not clone into the same folder 
 
 ```text
 usage: upma [-h]
-            {setup,status,calibrate,teleop,save-pose,dry-run,run,smart,ingredients,stir,grip-down,brain,dashboard,stop,guide}
+            {setup,status,calibrate,teleop,robo,save-pose,dry-run,run,smart,ingredients,stir,grip-down,brain,dashboard,stop,guide,login,whoami,download,push-hf}
             ...
 
 SO-101 upma robot CLI
@@ -37,16 +37,41 @@ upma setup --port COM7 --cameras 1 2
 upma status
 ```
 
+## Hugging Face Login And Downloads
+
+Log in:
+
+```cmd
+upma login
+upma whoami
+```
+
+Download a dataset/model from Hugging Face:
+
+```cmd
+upma download lakshveeer/robot --repo-type dataset
+upma download username/model-name --repo-type model --local-dir downloads\model-name
+```
+
 ## Calibrate
 
 ```cmd
 upma calibrate --port COM7
 ```
 
+Solo-style robot commands:
+
+```cmd
+upma robo --calibrate all
+upma robo --calibrate follower --port COM7
+```
+
 If you have Solo CLI installed and a leader arm on COM8:
 
 ```cmd
 upma teleop
+upma robo --teleop
+upma robo --teleop -y
 ```
 
 ## Save Poses
@@ -86,6 +111,26 @@ upma dry-run
 upma dry-run --ingredients
 ```
 
+## Start The Robot Dashboard
+
+Dry-run only dashboard:
+
+```cmd
+upma dashboard
+```
+
+Real movement dashboard:
+
+```cmd
+upma dashboard --allow-movement
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000
+```
+
 ## Test Movement
 
 ```cmd
@@ -120,6 +165,41 @@ Grip and down:
 upma grip-down --tight -5
 ```
 
+## Recording, Training, Inference, Replay
+
+These commands pass through to Solo CLI if Solo is installed in the environment:
+
+```cmd
+upma robo --record
+upma robo --record --yes
+upma robo --train
+upma robo --inference
+upma robo --replay
+```
+
+Use the local calibrated workflow for this project's direct cooking motions:
+
+```cmd
+upma dry-run --ingredients
+upma run --ingredients
+upma smart --cycles 5 --tight -5 --open 30
+```
+
+## Push To Hugging Face
+
+Upload this project or a dataset folder:
+
+```cmd
+upma push-hf username/my-upma-dataset --repo-type dataset --folder .
+upma push-hf username/my-model --repo-type model --folder downloads\model-name
+```
+
+Private repo:
+
+```cmd
+upma push-hf username/my-private-dataset --repo-type dataset --folder . --private
+```
+
 ## ChatGPT Brain
 
 Command Prompt:
@@ -136,18 +216,6 @@ PowerShell:
 $env:OPENAI_API_KEY="your_new_api_key_here"
 upma brain "pick the cup, grab the stick tight, and stir slowly"
 upma brain "pick the cup, grab the stick tight, and stir slowly" --execute
-```
-
-## Dashboard
-
-```cmd
-upma dashboard --allow-movement
-```
-
-Open:
-
-```text
-http://127.0.0.1:8000
 ```
 
 ## Stop

@@ -42,8 +42,13 @@ Solo-style CLI usage after editable install:
 uv pip install -e .
 upma --help
 upma setup --port COM7 --cameras 1 2
+upma login
+upma download lakshveeer/robot --repo-type dataset
+upma robo --calibrate all
+upma robo --teleop
 upma dry-run --ingredients
 upma run --ingredients
+upma push-hf username/my-upma-dataset --repo-type dataset --folder .
 ```
 
 Detailed Solo-style terminal flow:

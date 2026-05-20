@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Iterable
 
 
 ROOT = Path(__file__).resolve().parent
@@ -21,6 +22,13 @@ def run(command: list[str]) -> int:
     print("Running:")
     print(" ".join(command))
     return subprocess.call(command, cwd=ROOT)
+
+
+def run_optional(command: list[str], missing: str) -> int:
+    if shutil.which(command[0]) is None and not Path(command[0]).exists():
+        print(missing)
+        return 1
+    return run(command)
 
 
 def load_config() -> dict:
@@ -222,6 +230,109 @@ def guide(_: argparse.Namespace) -> int:
     return 0
 
 
+def hf_login(args: argparse.Namespace) -> int:
+    hf = shutil.which("huggingface-cli")
+    if hf is None:
+        return run([python_exe(), "-m", "huggingface_hub.commands.huggingface_cli", "login"])
+    command = [hf, "login"]
+    if args.token:
+        command.extend(["--token", args.token])
+    return run(command)
+
+
+def hf_whoami(_: argparse.Namespace) -> int:
+    hf = shutil.which("huggingface-cli")
+    if hf is None:
+        return run([python_exe(), "-m", "huggingface_hub.commands.huggingface_cli", "whoami"])
+    return run([hf, "whoami"])
+
+
+def download(args: argparse.Namespace) -> int:
+    try:
+        from huggingface_hub import snapshot_download
+    except ImportError:
+        print("huggingface_hub is not installed. Run: pip install huggingface_hub")
+        return 1
+
+    target = args.local_dir or str(ROOT / "downloads" / args.repo_id.replace("/", "__"))
+    print(f"Downloading {args.repo_id} to {target}")
+    snapshot_download(
+        repo_id=args.repo_id,
+        repo_type=args.repo_type,
+        revision=args.revision,
+        local_dir=target,
+        local_dir_use_symlinks=False,
+    )
+    print("Download complete.")
+    return 0
+
+
+def push_hf(args: argparse.Namespace) -> int:
+    try:
+        from huggingface_hub import HfApi
+    except ImportError:
+        print("huggingface_hub is not installed. Run: pip install huggingface_hub")
+        return 1
+
+    folder = Path(args.folder).resolve()
+    if not folder.exists():
+        print(f"Folder does not exist: {folder}")
+        return 1
+    api = HfApi()
+    print(f"Creating or reusing {args.repo_type} repo: {args.repo_id}")
+    api.create_repo(repo_id=args.repo_id, repo_type=args.repo_type, exist_ok=True, private=args.private)
+    print(f"Uploading {folder} to Hugging Face...")
+    api.upload_folder(
+        repo_id=args.repo_id,
+        repo_type=args.repo_type,
+        folder_path=str(folder),
+        path_in_repo=args.path_in_repo,
+        commit_message=args.message,
+    )
+    print("Upload complete.")
+    return 0
+
+
+def solo_command(extra: Iterable[str]) -> int:
+    solo = shutil.which("solo")
+    if solo is None:
+        print("The 'solo' command was not found. Install solo-cli first, then retry.")
+        print("Example: uv pip install -e path\\to\\solo-cli")
+        return 1
+    return run([solo, *extra])
+
+
+def robo(args: argparse.Namespace) -> int:
+    if args.calibrate:
+        if args.calibrate == "follower":
+            return calibrate(args)
+        return solo_command(["robo", "--calibrate", args.calibrate])
+    if args.teleop:
+        return teleop(args)
+    if args.record:
+        command = ["robo", "--record"]
+        if args.yes:
+            command.append("--yes")
+        return solo_command(command)
+    if args.train:
+        command = ["robo", "--train"]
+        if args.yes:
+            command.append("--yes")
+        return solo_command(command)
+    if args.inference:
+        command = ["robo", "--inference"]
+        if args.yes:
+            command.append("--yes")
+        return solo_command(command)
+    if args.replay:
+        command = ["robo", "--replay"]
+        if args.yes:
+            command.append("--yes")
+        return solo_command(command)
+    print("Choose one robo action: --calibrate, --teleop, --record, --train, --inference, or --replay.")
+    return 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="upma", description="SO-101 upma robot CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -242,6 +353,18 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("teleop", help="Run Solo teleoperation if solo-cli is installed.")
     p.add_argument("-y", "--yes", action="store_true")
     p.set_defaults(func=teleop)
+
+    p = sub.add_parser("robo", help="Solo-style robotics operations.")
+    p.add_argument("--calibrate", choices=["all", "leader", "follower"], default=None)
+    p.add_argument("--teleop", action="store_true")
+    p.add_argument("--record", action="store_true")
+    p.add_argument("--train", action="store_true")
+    p.add_argument("--inference", action="store_true")
+    p.add_argument("--replay", action="store_true")
+    p.add_argument("-y", "--yes", action="store_true")
+    p.add_argument("--port", default=None, help="Follower port for --calibrate follower.")
+    p.add_argument("--robot-id", default=None, help="Follower id for --calibrate follower.")
+    p.set_defaults(func=robo)
 
     p = sub.add_parser("save-pose", help="Save the current robot pose.")
     p.add_argument("name")
@@ -306,6 +429,29 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("guide", help="Open calibration guide.")
     p.set_defaults(func=guide)
+
+    p = sub.add_parser("login", help="Log in to Hugging Face.")
+    p.add_argument("--token", default=None)
+    p.set_defaults(func=hf_login)
+
+    p = sub.add_parser("whoami", help="Show Hugging Face account.")
+    p.set_defaults(func=hf_whoami)
+
+    p = sub.add_parser("download", help="Download a Hugging Face repo snapshot.")
+    p.add_argument("repo_id", help="Example: lakshveeer/robot")
+    p.add_argument("--repo-type", choices=["model", "dataset", "space"], default="dataset")
+    p.add_argument("--revision", default=None)
+    p.add_argument("--local-dir", default=None)
+    p.set_defaults(func=download)
+
+    p = sub.add_parser("push-hf", help="Upload a folder to Hugging Face.")
+    p.add_argument("repo_id", help="Example: username/my-robot-dataset")
+    p.add_argument("--folder", default=".", help="Folder to upload.")
+    p.add_argument("--repo-type", choices=["model", "dataset", "space"], default="dataset")
+    p.add_argument("--path-in-repo", default="")
+    p.add_argument("--message", default="Upload SO-101 upma robot files")
+    p.add_argument("--private", action="store_true")
+    p.set_defaults(func=push_hf)
 
     return parser
 
