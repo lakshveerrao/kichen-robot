@@ -36,6 +36,22 @@ Full calibration and run guide:
 notepad UPMA_CALIBRATION_GUIDE.md
 ```
 
+Solo-style CLI usage after editable install:
+
+```powershell
+uv pip install -e .
+upma --help
+upma setup --port COM7 --cameras 1 2
+upma dry-run --ingredients
+upma run --ingredients
+```
+
+Detailed Solo-style terminal flow:
+
+```powershell
+notepad SOLO_STYLE_USAGE.md
+```
+
 ## Main Commands
 
 Dry run, no movement:
