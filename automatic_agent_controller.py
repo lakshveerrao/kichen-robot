@@ -104,12 +104,6 @@ def main() -> int:
     if not request:
         print("No request provided.")
         return 1
-    if not os.environ.get("OPENAI_API_KEY"):
-        print("Missing OPENAI_API_KEY. Set it in your terminal, never in Git.")
-        print('PowerShell: $env:OPENAI_API_KEY="your_api_key_here"')
-        print("CMD: set OPENAI_API_KEY=your_api_key_here")
-        return 1
-
     try:
         command = command_for(args)
         result = {
@@ -122,6 +116,11 @@ def main() -> int:
         if args.plan_only:
             print("Planning only. Remove --plan-only to run movement.")
             return 0
+        if not os.environ.get("OPENAI_API_KEY"):
+            print("Missing OPENAI_API_KEY. Set it in your terminal, never in Git.")
+            print('PowerShell: $env:OPENAI_API_KEY="your_api_key_here"')
+            print("CMD: set OPENAI_API_KEY=your_api_key_here")
+            return 1
         print("Executing automatic agent command.")
         completed = subprocess.run(command, cwd=ROOT, check=False)
         return int(completed.returncode)
