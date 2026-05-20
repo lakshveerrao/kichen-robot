@@ -334,7 +334,7 @@ def robo(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="upma", description="SO-101 upma robot CLI")
+    parser = argparse.ArgumentParser(prog="pbl", description="PBL SO-101 kitchen robot CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("setup", help="Create/update config.json.")

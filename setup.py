@@ -34,6 +34,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
+            "pbl=so101_upma_cli:main",
             "upma=so101_upma_cli:main",
         ],
     },

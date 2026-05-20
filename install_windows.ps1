@@ -14,6 +14,7 @@ if (-not (Test-Path ".venv")) {
 
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\pip.exe install -r requirements.txt
+.\.venv\Scripts\pip.exe install -e . --no-build-isolation
 
 if (-not (Test-Path "config.json")) {
     Copy-Item "config.example.json" "config.json"
@@ -25,5 +26,7 @@ Write-Host ""
 Write-Host "Setup complete."
 Write-Host "Next commands:"
 Write-Host "  mode"
-Write-Host "  .\.venv\Scripts\python.exe connect_test.py"
-Write-Host "  .\.venv\Scripts\python.exe upma_mode.py --dry-run --yes"
+Write-Host "  .\.venv\Scripts\activate"
+Write-Host "  pbl --help"
+Write-Host "  pbl setup --port COM7 --cameras 1 2"
+Write-Host "  pbl status"

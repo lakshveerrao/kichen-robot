@@ -1,60 +1,58 @@
-# SO-101 Upma Robot
+# PBL SO-101 Kitchen Robot
 
-Windows-first SO-101 LeRobot project for calibrated upma stirring, ingredient cup pickup, spoon/stirrer pickup, tight gripper control, localhost dashboard control, and a bounded ChatGPT robot brain.
+Windows-first SO-101 LeRobot project for calibrated stirring, ingredient cup pickup, spoon/stirrer pickup, tight gripper control, localhost dashboard control, Hugging Face upload/download, Solo-style robot commands, and a bounded ChatGPT robot brain.
 
 The robot moves only through calibrated poses or validated small bounded moves. Keep one hand near the robot power switch during every real movement command.
 
-## GitHub Download And Windows Install
+## Quick Download And Install
 
 Clone the repository on a new Windows system:
 
-```powershell
+```cmd
 cd C:\Users\PBL
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git so101_kitchen_stirrer_milestone
+git clone https://github.com/lakshveerrao/kichen-robot.git so101_kitchen_stirrer_milestone
 cd C:\Users\PBL\so101_kitchen_stirrer_milestone
-powershell -ExecutionPolicy Bypass -File .\install_windows.ps1
+py -3.11 -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install uv
+uv pip install -e .
+pbl --help
 ```
 
-Edit local robot config:
+If the folder already exists:
 
-```powershell
-notepad config.json
+```cmd
+cd C:\Users\PBL\so101_kitchen_stirrer_milestone
+git pull
+.venv\Scripts\activate
+uv pip install -e .
+pbl --help
 ```
 
-Set `robot_port` to your robot port, for example `COM7`.
+## First Robot Setup
 
-Check the robot:
-
-```powershell
-mode
-.\.venv\Scripts\python.exe connect_test.py
+```cmd
+pbl setup --port COM7 --cameras 1 2
+pbl status
 ```
 
 Full calibration and run guide:
 
-```powershell
+```cmd
 notepad UPMA_CALIBRATION_GUIDE.md
 ```
 
-Solo-style CLI usage after editable install:
+Clear Git download guide:
 
-```powershell
-uv pip install -e .
-upma --help
-upma setup --port COM7 --cameras 1 2
-upma login
-upma download lakshveeer/robot --repo-type dataset
-upma robo --calibrate all
-upma robo --teleop
-upma dry-run --ingredients
-upma run --ingredients
-upma push-hf username/my-upma-dataset --repo-type dataset --folder .
+```cmd
+notepad GIT_DOWNLOAD_GUIDE.md
 ```
 
 Detailed Solo-style terminal flow:
 
-```powershell
-notepad SOLO_STYLE_USAGE.md
+```cmd
+notepad PBL_CLI_USAGE.md
 ```
 
 ## Main Commands
@@ -62,25 +60,25 @@ notepad SOLO_STYLE_USAGE.md
 Dry run, no movement:
 
 ```powershell
-.\.venv\Scripts\python.exe upma_mode.py --dry-run --with-ingredients --yes
+pbl dry-run --ingredients
 ```
 
 Run full upma with ingredient cup and spoon/stirrer pickup:
 
 ```powershell
-.\.venv\Scripts\python.exe upma_mode.py --with-ingredients --yes --speed-scale 0.02 --cycles-multiplier 1 --pause 0.15 --low-pressure-lift-deg 6
+pbl run --ingredients
 ```
 
 Run smart tight-grip cup, stick, and stir sequence:
 
 ```powershell
-.\.venv\Scripts\python.exe smart_upma_runner.py --yes --speed-scale 0.02 --pause 0.25 --stir-cycles 5 --tight -5 --open 30
+pbl smart --cycles 5 --tight -5 --open 30
 ```
 
 Run localhost dashboard:
 
 ```powershell
-.\.venv\Scripts\python.exe kitchen_robot_server.py --allow-movement
+pbl dashboard --allow-movement
 ```
 
 Open:
@@ -108,13 +106,13 @@ set OPENAI_API_KEY=your_new_api_key_here
 Plan only, no movement:
 
 ```powershell
-.\.venv\Scripts\python.exe chatgpt_robot_brain.py "pick the cup, grab the stick tight, and stir slowly"
+pbl brain "pick the cup, grab the stick tight, and stir slowly"
 ```
 
 Execute the selected safe project action:
 
 ```powershell
-.\.venv\Scripts\python.exe chatgpt_robot_brain.py "pick the cup, grab the stick tight, and stir slowly" --execute
+pbl brain "pick the cup, grab the stick tight, and stir slowly" --execute
 ```
 
 ## Publish To GitHub
@@ -122,7 +120,7 @@ Execute the selected safe project action:
 See:
 
 ```powershell
-notepad GITHUB_PUBLISH_COMMANDS.md
+notepad GIT_DOWNLOAD_GUIDE.md
 ```
 
 The `.gitignore` excludes `.venv`, `config.json`, logs, caches, camera snapshots, and `.env`.
