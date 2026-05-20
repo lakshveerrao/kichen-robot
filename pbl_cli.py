@@ -70,7 +70,7 @@ def setup_config(args: argparse.Namespace) -> int:
 
 
 def status(_: argparse.Namespace) -> int:
-    print("SO-101 Upma status")
+    print("PBL SO-101 status")
     config = load_config()
     print(f"Project: {ROOT}")
     print(f"Python: {python_exe()}")
@@ -86,7 +86,7 @@ def status(_: argparse.Namespace) -> int:
 def calibrate(args: argparse.Namespace) -> int:
     config = load_config()
     port = args.port or config.get("robot_port") or config.get("follower_port") or "COM7"
-    robot_id = args.robot_id or config.get("follower_id") or config.get("robot_id") or "kitchen_stirrer_follower"
+    robot_id = args.robot_id or config.get("follower_id") or config.get("robot_id") or "so101_follower"
     return run(
         [
             str(ROOT / ".venv" / "Scripts" / "lerobot-calibrate.exe"),
@@ -158,110 +158,6 @@ def save_pose(args: argparse.Namespace) -> int:
     return run(command)
 
 
-def dry_run(args: argparse.Namespace) -> int:
-    command = [python_exe(), "upma_mode.py", "--dry-run", "--yes"]
-    if args.ingredients:
-        command.append("--with-ingredients")
-    return run(command)
-
-
-def run_upma(args: argparse.Namespace) -> int:
-    command = [
-        python_exe(),
-        "upma_mode.py",
-        "--yes",
-        "--speed-scale",
-        str(args.speed_scale),
-        "--cycles-multiplier",
-        str(args.cycles_multiplier),
-        "--pause",
-        str(args.pause),
-        "--low-pressure-lift-deg",
-        str(args.low_pressure_lift),
-    ]
-    if args.ingredients:
-        command.append("--with-ingredients")
-    if args.skip_camera_check:
-        command.append("--skip-camera-boundary-check")
-    return run(command)
-
-
-def smart(args: argparse.Namespace) -> int:
-    return run(
-        [
-            python_exe(),
-            "smart_upma_runner.py",
-            "--yes",
-            "--speed-scale",
-            str(args.speed_scale),
-            "--pause",
-            str(args.pause),
-            "--stir-cycles",
-            str(args.cycles),
-            "--tight",
-            str(args.tight),
-            "--open",
-            str(args.open),
-        ]
-    )
-
-
-def ingredients(args: argparse.Namespace) -> int:
-    return run(
-        [
-            python_exe(),
-            "ingredient_actions.py",
-            "--action",
-            args.action,
-            "--speed-scale",
-            str(args.speed_scale),
-            "--pause",
-            str(args.pause),
-            "--yes",
-        ]
-    )
-
-
-def stir(args: argparse.Namespace) -> int:
-    return run(
-        [
-            python_exe(),
-            "stir_motion.py",
-            "--motion",
-            args.motion,
-            "--cycles",
-            str(args.cycles),
-            "--speed-scale",
-            str(args.speed_scale),
-            "--yes",
-        ]
-    )
-
-
-def grip_down(args: argparse.Namespace) -> int:
-    return run(
-        [
-            python_exe(),
-            "grip_down.py",
-            "--speed-scale",
-            str(args.speed_scale),
-            "--grip-value",
-            str(args.tight),
-            "--pause",
-            str(args.pause),
-            "--yes",
-        ]
-    )
-
-
-def brain(args: argparse.Namespace) -> int:
-    command = [python_exe(), "chatgpt_robot_brain.py", args.request]
-    if args.execute:
-        command.append("--execute")
-    command.extend(["--speed-scale", str(args.speed_scale), "--pause", str(args.pause), "--cycles", str(args.cycles)])
-    return run(command)
-
-
 def agent(args: argparse.Namespace) -> int:
     command = [python_exe(), "automatic_agent_controller.py", *args.request]
     if args.execute:
@@ -275,25 +171,44 @@ def agent(args: argparse.Namespace) -> int:
     return run(command)
 
 
-def dashboard(args: argparse.Namespace) -> int:
-    command = [python_exe(), "kitchen_robot_server.py"]
-    if args.allow_movement:
-        command.append("--allow-movement")
-    command.extend(["--host", args.host, "--port", str(args.port)])
-    return run(command)
-
-
 def stop(_: argparse.Namespace) -> int:
     if os.name == "nt":
         return subprocess.call(["taskkill", "/F", "/IM", "python.exe"])
     return subprocess.call(["pkill", "-f", "python"])
 
 
-def guide(_: argparse.Namespace) -> int:
-    guide_path = ROOT / "UPMA_CALIBRATION_GUIDE.md"
-    print(guide_path)
-    if os.name == "nt":
-        return subprocess.call(["notepad", str(guide_path)])
+def test(_: argparse.Namespace) -> int:
+    return status(_)
+
+
+def list_assets(_: argparse.Namespace) -> int:
+    for folder_name in ("downloads", "recordings", "models"):
+        folder = ROOT / folder_name
+        print(f"{folder_name}:")
+        if not folder.exists():
+            print("  missing")
+            continue
+        items = sorted(folder.iterdir())
+        if not items:
+            print("  empty")
+            continue
+        for item in items:
+            print(f"  {item.name}")
+    return 0
+
+
+def logout(_: argparse.Namespace) -> int:
+    hf = shutil.which("huggingface-cli")
+    command = [hf, "logout"] if hf else [python_exe(), "-m", "huggingface_hub.commands.huggingface_cli", "logout"]
+    return run(command)
+
+
+def setup_usb(_: argparse.Namespace) -> int:
+    print("Windows USB setup:")
+    print("  1. Connect the SO-101 USB adapters.")
+    print("  2. Run: mode")
+    print("  3. Use the detected COM ports with pbl setup --port COM7 --leader-port COM8")
+    print("  4. If a port is missing, unplug/replug USB or try another cable/port.")
     return 0
 
 
@@ -423,7 +338,7 @@ def robo(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="pbl", description="PBL SO-101 kitchen robot CLI")
+    parser = argparse.ArgumentParser(prog="pbl", description="PBL SO-101 robotics CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("setup", help="Create/update config.json.")
@@ -503,7 +418,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--episodes", type=int, default=None, help="Number of recording episodes. If omitted, pbl asks.")
     p.add_argument("--seconds", type=float, default=None, help="Seconds per episode. If omitted, pbl asks.")
     p.add_argument("--dataset-dir", default="recordings/latest")
-    p.add_argument("--task", default="so101_kitchen_recording")
+    p.add_argument("--task", default="so101_recording")
     p.add_argument("--control-mode", choices=["auto", "teleop", "observe"], default="auto")
     p.add_argument("--out", default="recordings/latest/observations.jsonl")
     p.add_argument("--input", default="recordings/latest")
@@ -523,53 +438,6 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--force", action="store_true")
     p.set_defaults(func=save_pose)
 
-    p = sub.add_parser("dry-run", help="Validate sequence without movement.")
-    p.add_argument("--ingredients", action="store_true")
-    p.set_defaults(func=dry_run)
-
-    p = sub.add_parser("run", help="Run upma sequence.")
-    p.add_argument("--ingredients", action="store_true")
-    p.add_argument("--speed-scale", type=float, default=0.02)
-    p.add_argument("--cycles-multiplier", type=float, default=1.0)
-    p.add_argument("--pause", type=float, default=0.15)
-    p.add_argument("--low-pressure-lift", type=float, default=6.0)
-    p.add_argument("--skip-camera-check", action="store_true")
-    p.set_defaults(func=run_upma)
-
-    p = sub.add_parser("smart", help="Cup pickup, stick pickup, tight grip, stir, and park.")
-    p.add_argument("--speed-scale", type=float, default=0.02)
-    p.add_argument("--pause", type=float, default=0.25)
-    p.add_argument("--cycles", type=int, default=5)
-    p.add_argument("--tight", type=float, default=-5.0)
-    p.add_argument("--open", type=float, default=30.0)
-    p.set_defaults(func=smart)
-
-    p = sub.add_parser("ingredients", help="Run ingredient cup/stick action only.")
-    p.add_argument("--action", choices=["all", "cup", "stirrer"], default="all")
-    p.add_argument("--speed-scale", type=float, default=0.02)
-    p.add_argument("--pause", type=float, default=0.6)
-    p.set_defaults(func=ingredients)
-
-    p = sub.add_parser("stir", help="Run a small stirring test.")
-    p.add_argument("--motion", choices=["front-back", "left-right", "up-down", "clockwise", "anticlockwise"], default="front-back")
-    p.add_argument("--cycles", type=int, default=1)
-    p.add_argument("--speed-scale", type=float, default=0.02)
-    p.set_defaults(func=stir)
-
-    p = sub.add_parser("grip-down", help="Tighten gripper and move to DOWN.")
-    p.add_argument("--speed-scale", type=float, default=0.02)
-    p.add_argument("--tight", type=float, default=-5.0)
-    p.add_argument("--pause", type=float, default=0.5)
-    p.set_defaults(func=grip_down)
-
-    p = sub.add_parser("brain", help="Ask ChatGPT to choose a safe project action.")
-    p.add_argument("request")
-    p.add_argument("--execute", action="store_true")
-    p.add_argument("--speed-scale", type=float, default=0.02)
-    p.add_argument("--pause", type=float, default=0.25)
-    p.add_argument("--cycles", type=int, default=5)
-    p.set_defaults(func=brain)
-
     p = sub.add_parser("agent", help="Camera-aware automatic agent controller.")
     p.add_argument("request", nargs="*")
     p.add_argument("--execute", action="store_true")
@@ -580,17 +448,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--pause", type=float, default=0.4)
     p.set_defaults(func=agent)
 
-    p = sub.add_parser("dashboard", help="Start localhost dashboard.")
-    p.add_argument("--allow-movement", action="store_true")
-    p.add_argument("--host", default="127.0.0.1")
-    p.add_argument("--port", type=int, default=8000)
-    p.set_defaults(func=dashboard)
-
     p = sub.add_parser("stop", help="Stop Python robot processes.")
     p.set_defaults(func=stop)
 
-    p = sub.add_parser("guide", help="Open calibration guide.")
-    p.set_defaults(func=guide)
+    p = sub.add_parser("test", help="Test CLI and robot connection.")
+    p.set_defaults(func=test)
+
+    p = sub.add_parser("list", help="List local downloads, recordings, and models.")
+    p.set_defaults(func=list_assets)
+
+    p = sub.add_parser("setup-usb", help="Show Windows USB/COM setup steps.")
+    p.set_defaults(func=setup_usb)
 
     p = sub.add_parser("login", help="Log in to Hugging Face.")
     p.add_argument("--token", default=None)
@@ -598,6 +466,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("whoami", help="Show Hugging Face account.")
     p.set_defaults(func=hf_whoami)
+
+    p = sub.add_parser("logout", help="Log out of Hugging Face.")
+    p.set_defaults(func=logout)
 
     p = sub.add_parser("download", help="Download a Hugging Face repo snapshot.")
     p.add_argument("repo_id", help="Example: lakshveeer/robot")
@@ -611,7 +482,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--folder", default=".", help="Folder to upload.")
     p.add_argument("--repo-type", choices=["model", "dataset", "space"], default="dataset")
     p.add_argument("--path-in-repo", default="")
-    p.add_argument("--message", default="Upload SO-101 upma robot files")
+    p.add_argument("--message", default="Upload SO-101 robot files")
     p.add_argument("--private", action="store_true")
     p.set_defaults(func=push_hf)
 

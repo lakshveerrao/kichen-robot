@@ -4,11 +4,11 @@ from setuptools import setup
 
 
 setup(
-    name="so101-upma",
+    name="pbl-so101-cli",
     version="0.1.0",
-    description="SO-101 LeRobot upma cooking workflow with calibrated poses, dashboard, and ChatGPT brain.",
+    description="Solo-style SO-101 LeRobot CLI for setup, calibration, teleop, recording, training, replay, and agent control.",
     py_modules=[
-        "so101_upma_cli",
+        "pbl_cli",
         "robot_api",
         "connect_test",
         "local_teleop",
@@ -21,21 +21,8 @@ setup(
         "visual_agent_runner",
         "generic_pose_action",
         "save_position",
-        "upma_mode",
-        "stir_motion",
-        "ingredient_actions",
-        "smart_upma_runner",
-        "tight_cup_stick_stir",
-        "grip_down",
-        "chatgpt_robot_brain",
-        "chatgpt_brain",
-        "kitchen_robot_server",
-        "camera_check",
         "manual_control",
         "replay_sequence",
-        "pan_sweep",
-        "opencv_auto_stir",
-        "live_rl_stir",
     ],
     install_requires=[
         "lerobot[feetech]",
@@ -43,8 +30,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "pbl=so101_upma_cli:main",
-            "upma=so101_upma_cli:main",
+            "pbl=pbl_cli:main",
         ],
     },
     python_requires=">=3.11",

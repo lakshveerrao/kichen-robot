@@ -3,138 +3,39 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PBL SO-101 Kitchen Robot Docs</title>
+  <title>PBL SO-101 CLI Docs</title>
   <style>
-    :root {
-      --bg: #f6f8fb;
-      --panel: #ffffff;
-      --ink: #172033;
-      --muted: #5d6678;
-      --line: #d9e0ea;
-      --accent: #0f766e;
-      --accent-dark: #0a4f4a;
-      --code: #111827;
-      --code-ink: #d7f7ee;
-    }
+    :root { --bg:#f6f8fb; --panel:#fff; --ink:#172033; --muted:#5d6678; --line:#d9e0ea; --accent:#0f766e; --code:#111827; --code-ink:#d7f7ee; }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      color: var(--ink);
-      background: var(--bg);
-      line-height: 1.55;
-    }
-    header {
-      background: #ffffff;
-      border-bottom: 1px solid var(--line);
-      padding: 34px 20px;
-    }
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    h1 {
-      margin: 0 0 8px;
-      font-size: 34px;
-      letter-spacing: 0;
-    }
-    h2 {
-      margin: 32px 0 12px;
-      font-size: 24px;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 8px;
-    }
-    h3 {
-      margin: 24px 0 8px;
-      font-size: 18px;
-    }
-    p { color: var(--muted); margin: 0 0 12px; }
-    a { color: var(--accent-dark); }
-    main {
-      padding: 22px 20px 60px;
-    }
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 18px;
-    }
-    nav a {
-      color: var(--accent-dark);
-      border: 1px solid var(--line);
-      background: #fdfefe;
-      border-radius: 6px;
-      padding: 7px 10px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 14px;
-    }
-    section {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 18px;
-      margin: 16px 0;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 12px;
-    }
-    .card {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
-      background: #fbfcfe;
-    }
-    .card b {
-      display: block;
-      margin-bottom: 5px;
-    }
-    pre {
-      margin: 10px 0 16px;
-      padding: 14px;
-      overflow-x: auto;
-      background: var(--code);
-      color: var(--code-ink);
-      border-radius: 8px;
-      font-size: 14px;
-      line-height: 1.45;
-    }
-    code {
-      font-family: Consolas, Monaco, monospace;
-    }
-    ul {
-      margin-top: 8px;
-      padding-left: 22px;
-    }
-    .warning {
-      border-left: 5px solid #b42318;
-      background: #fff7f6;
-    }
-    .ok {
-      border-left: 5px solid var(--accent);
-      background: #f1fbf8;
-    }
+    body { margin:0; font-family:Arial,Helvetica,sans-serif; color:var(--ink); background:var(--bg); line-height:1.55; }
+    header { background:#fff; border-bottom:1px solid var(--line); padding:34px 20px; }
+    main { padding:22px 20px 60px; }
+    .wrap { max-width:1100px; margin:0 auto; }
+    h1 { margin:0 0 8px; font-size:34px; }
+    h2 { margin:32px 0 12px; font-size:24px; border-bottom:1px solid var(--line); padding-bottom:8px; }
+    h3 { margin:24px 0 8px; font-size:18px; }
+    p { color:var(--muted); margin:0 0 12px; }
+    nav { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+    nav a { color:#0a4f4a; border:1px solid var(--line); background:#fdfefe; border-radius:6px; padding:7px 10px; text-decoration:none; font-weight:700; font-size:14px; }
+    section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:18px; margin:16px 0; }
+    pre { margin:10px 0 16px; padding:14px; overflow-x:auto; background:var(--code); color:var(--code-ink); border-radius:8px; font-size:14px; line-height:1.45; }
+    code { font-family:Consolas,Monaco,monospace; }
+    .warning { border-left:5px solid #b42318; background:#fff7f6; }
   </style>
 </head>
 <body>
   <header>
     <div class="wrap">
-      <h1>PBL SO-101 Kitchen Robot</h1>
-      <p>Git-downloadable Windows project for SO-101 LeRobot cooking workflows: local teleop, calibrated pose saving, cup pickup, spoon/stick pickup, stirring, dashboard control, ChatGPT brain, and Hugging Face upload/download.</p>
+      <h1>PBL SO-101 CLI</h1>
+      <p>Solo-style Windows CLI for LeRobot SO-101 setup, calibration, teleop, recording, training, replay, Hugging Face, Rerun, and terminal agent control.</p>
       <nav>
         <a href="#install">Install</a>
-        <a href="#configure">Configure</a>
-        <a href="#motors">Motor IDs</a>
+        <a href="#setup">Setup</a>
+        <a href="#calibrate">Calibrate</a>
         <a href="#teleop">Teleop</a>
-        <a href="#poses">Save Poses</a>
-        <a href="#run">Run</a>
+        <a href="#record">Record</a>
         <a href="#agent">Agent</a>
-        <a href="#learning">Record/Train</a>
-        <a href="#chatgpt">ChatGPT</a>
-        <a href="#huggingface">Hugging Face</a>
-        <a href="#git">Git</a>
+        <a href="#hf">Hugging Face</a>
       </nav>
     </div>
   </header>
@@ -142,12 +43,11 @@
     <div class="wrap">
       <section class="warning">
         <h2>Safety</h2>
-        <p>Keep one hand near the robot power switch during every real movement. Run dry-runs before movement. Do not run pose-saving commands in a batch because every pose must be saved after physically moving the robot to that pose.</p>
+        <p>Keep one hand near the robot power switch for every movement command. The agent uses bounded moves, but hardware can still collide if the workspace is not clear.</p>
       </section>
 
       <section id="install">
-        <h2>1. Download And Install</h2>
-        <h3>Fresh Windows System</h3>
+        <h2>Install</h2>
         <pre><code>cd C:\Users\PBL
 git clone https://github.com/lakshveerrao/kichen-robot.git so101_kitchen_stirrer_milestone
 cd C:\Users\PBL\so101_kitchen_stirrer_milestone
@@ -157,177 +57,54 @@ python -m pip install --upgrade pip
 pip install uv
 uv pip install -e .
 pbl --help</code></pre>
-        <h3>If The Folder Already Exists</h3>
-        <pre><code>cd C:\Users\PBL\so101_kitchen_stirrer_milestone
-git pull
-.venv\Scripts\activate
-uv pip install -e .
-pbl --help</code></pre>
       </section>
 
-      <section id="configure">
-        <h2>2. Configure And Check Robot</h2>
-        <pre><code>pbl setup --port COM7 --cameras 1 2
+      <section id="setup">
+        <h2>Setup</h2>
+        <pre><code>pbl setup --port COM7 --leader-port COM8 --leader-id 1 --follower-id 2 --cameras 0 1 2
 pbl status
-mode</code></pre>
-        <p>Do not use commas for cameras. Use spaces: <code>--cameras 1 2</code>.</p>
-        <h3>With Leader Arm For Teleop</h3>
-        <pre><code>pbl setup --port COM7 --leader-port COM8 --leader-id 1 --follower-id kitchen_stirrer_follower --cameras 1 2</code></pre>
+mode
+pbl setup-usb</code></pre>
       </section>
 
-      <section id="motors">
-        <h2>3. Assign Motor IDs And Calibrate</h2>
-        <p>Only assign motor IDs for a new robot or after replacing motors. LeRobot will ask you to connect one motor at a time.</p>
+      <section id="calibrate">
+        <h2>Motor IDs And Calibration</h2>
         <pre><code>pbl setup-motors --device all
-pbl robo --setup-motors all</code></pre>
-        <p>Calibrate follower only:</p>
-        <pre><code>pbl calibrate --device follower --follower-port COM7</code></pre>
-        <p>Calibrate leader and follower:</p>
-        <pre><code>pbl calibrate --device all --leader-port COM8 --follower-port COM7
+pbl calibrate --device all --leader-port COM8 --follower-port COM7
 pbl robo --calibrate all --leader-port COM8 --follower-port COM7</code></pre>
       </section>
 
       <section id="teleop">
-        <h2>4. Teleoperation Without Solo CLI</h2>
-        <p>This project does not require Solo CLI. Teleop uses local LeRobot leader/follower APIs.</p>
-        <pre><code>pbl teleop</code></pre>
-        <p>Teleop asks whether to use cameras. Camera capture runs in background threads so robot motion stays fast.</p>
-        <p>Explicit ports:</p>
-        <pre><code>pbl teleop --leader-port COM8 --follower-port COM7 --leader-id 1 --follower-id kitchen_stirrer_follower</code></pre>
-        <p>Skip cameras or use configured cameras without asking:</p>
+        <h2>Teleop</h2>
         <pre><code>pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode no
 pbl teleop --leader-port COM8 --follower-port COM7
-pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30</code></pre>
-        <p>Use Rerun for live camera view and robot data:</p>
-        <pre><code>pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30 --rerun</code></pre>
-        <p>Rerun viewer: <a href="https://rerun.io/">https://rerun.io/</a></p>
-        <p>Stop teleop with <code>Ctrl+C</code>.</p>
+pbl teleop --leader-port COM8 --follower-port COM7 --camera-mode yes --camera-fps 30 --rerun</code></pre>
       </section>
 
-      <section id="poses">
-        <h2>5. Save Poses</h2>
-        <p>Move the robot to the pose using teleop or by hand, then save only that pose.</p>
-        <h3>Main Poses</h3>
-        <pre><code>pbl save-pose HOME
-pbl save-pose ABOVE_BOWL
-pbl save-pose STIR_DEPTH
-pbl save-pose LIFT
-pbl save-pose PARK
-pbl save-pose STIR_FORWARD
-pbl save-pose STIR_BACK
-pbl save-pose STIR_LEFT
-pbl save-pose STIR_RIGHT
-pbl save-pose UP
-pbl save-pose DOWN
-pbl save-pose LEFT
-pbl save-pose RIGHT</code></pre>
-        <h3>Ingredient Cup Poses</h3>
-        <pre><code>pbl save-pose CUP_APPROACH
-pbl save-pose CUP_GRASP
-pbl save-pose CUP_LIFT
-pbl save-pose CUP_POUR
-pbl save-pose CUP_PLACE
-pbl save-pose CUP_RELEASE</code></pre>
-        <h3>Spoon/Stick Poses</h3>
-        <pre><code>pbl save-pose STIRRER_APPROACH
-pbl save-pose STIRRER_GRASP
-pbl save-pose STIRRER_LIFT
-pbl save-pose STIRRER_READY</code></pre>
-      </section>
-
-      <section id="run">
-        <h2>6. Validate And Run</h2>
-        <div class="grid">
-          <div class="card">
-            <b>No Movement</b>
-            <pre><code>pbl dry-run
-pbl dry-run --ingredients</code></pre>
-          </div>
-          <div class="card">
-            <b>Small Movement Tests</b>
-            <pre><code>pbl stir --motion front-back --cycles 1
-pbl stir --motion left-right --cycles 1
-pbl ingredients --action all</code></pre>
-          </div>
-          <div class="card">
-            <b>Full Run</b>
-            <pre><code>pbl run --ingredients</code></pre>
-          </div>
-          <div class="card">
-            <b>Smart Tight Grip</b>
-            <pre><code>pbl smart --cycles 5 --tight -5 --open 30</code></pre>
-          </div>
-        </div>
-        <h3>Camera Check Override</h3>
-        <pre><code>pbl run --ingredients --skip-camera-check</code></pre>
-        <h3>Dashboard</h3>
-        <pre><code>pbl dashboard --allow-movement</code></pre>
-        <p>Open <code>http://127.0.0.1:8000</code>.</p>
-      </section>
-
-      <section id="agent">
-        <h2>7. Automatic Agent Controller</h2>
-        <p>The terminal agent uses configured camera frames and ChatGPT, then runs bounded local robot micro-moves from the current pose.</p>
-        <pre><code>set OPENAI_API_KEY=your_api_key_here
-pbl agent</code></pre>
-        <p>Pen-to-cup without saved poses:</p>
-        <pre><code>pbl agent "pick up the pen and place it in the cup" --execute --steps 12</code></pre>
-        <p>The no-saved-poses path is not hardcoded to pen/cup. It reads the request and camera frames, then repeatedly chooses the next bounded move: pan, lift, elbow, wrist, wrist roll, open gripper, close gripper, hold, done, or stop.</p>
-        <p>Optional saved-pose mode:</p>
-        <pre><code>pbl save-pose PEN_APPROACH --force
-pbl save-pose PEN_GRASP --force
-pbl save-pose PEN_LIFT --force
-pbl save-pose CUP_TARGET --force
-pbl save-pose PEN_RELEASE --force
-pbl save-pose PEN_RETREAT --force
-pbl agent "pick up the pen and place it in the cup" --execute --use-saved-poses</code></pre>
-      </section>
-
-      <section id="learning">
-        <h2>8. Local Record, Train, Inference</h2>
-        <p>This is an episode-based recording workflow. It does not require Solo CLI. Without timing arguments, recording asks how many episodes and how many seconds per episode.</p>
+      <section id="record">
+        <h2>Record, Train, Replay</h2>
         <pre><code>pbl robo --record --camera-mode yes --camera-fps 30 --rerun
+pbl robo --record --episodes 5 --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun -y
 pbl robo --train --input recordings/latest --model-out models/latest_policy.json
 pbl robo --inference --policy models/latest_policy.json --speed-scale 0.02
 pbl robo --replay</code></pre>
-        <p>Non-interactive episode recording:</p>
-        <pre><code>pbl robo --record --episodes 5 --seconds 20 --fps 60 --camera-mode yes --camera-fps 30 --rerun -y</code></pre>
-        <p>Record and push the dataset to Hugging Face:</p>
-        <pre><code>pbl robo --record --episodes 5 --seconds 20 --camera-mode yes --rerun --push-hf --repo-id YOUR_USERNAME/my-so101-recording</code></pre>
       </section>
 
-      <section id="chatgpt">
-        <h2>8. ChatGPT Brain</h2>
-        <p>Do not put API keys in code or Git.</p>
-        <h3>Command Prompt</h3>
-        <pre><code>set OPENAI_API_KEY=your_new_api_key_here
-pbl brain "pick the cup, grab the stick tight, and stir slowly"
-pbl brain "pick the cup, grab the stick tight, and stir slowly" --execute</code></pre>
-        <h3>PowerShell</h3>
-        <pre><code>$env:OPENAI_API_KEY="your_new_api_key_here"
-pbl brain "pick the cup, grab the stick tight, and stir slowly"
-pbl brain "pick the cup, grab the stick tight, and stir slowly" --execute</code></pre>
+      <section id="agent">
+        <h2>Terminal Agent</h2>
+        <pre><code>set OPENAI_API_KEY=your_api_key_here
+pbl agent
+pbl agent "move the object to the left side" --execute --steps 12</code></pre>
+        <p>The agent is request-driven and uses camera frames with bounded small robot moves from the current pose.</p>
       </section>
 
-      <section id="huggingface">
-        <h2>9. Hugging Face</h2>
+      <section id="hf">
+        <h2>Hugging Face</h2>
         <pre><code>pbl login
 pbl whoami
 pbl download lakshveeer/robot --repo-type dataset
-pbl push-hf username/my-upma-dataset --repo-type dataset --folder .</code></pre>
-      </section>
-
-      <section id="git">
-        <h2>10. Git Update And Push</h2>
-        <pre><code>cd C:\Users\PBL\so101_kitchen_stirrer_milestone
-git pull
-git add .
-git commit -m "Update PBL kitchen robot"
-git push</code></pre>
-        <h3>Enable GitHub Pages</h3>
-        <p>On GitHub, open repository settings, go to Pages, choose source <code>Deploy from a branch</code>, branch <code>main</code>, folder <code>/docs</code>, then save.</p>
-        <p>Expected site URL after GitHub builds it:</p>
-        <pre><code>https://lakshveerrao.github.io/kichen-robot/</code></pre>
+pbl push-hf YOUR_USERNAME/my-dataset --repo-type dataset --folder recordings/latest
+pbl logout</code></pre>
       </section>
     </div>
   </main>
